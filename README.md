@@ -14,6 +14,7 @@ TODO: Add nice picture of APS
         <li><a href="#philosophy">Philosophy</a></li>
         <li><a href="#versioning">Versioning</a></li>
         <li><a href="#syntax">Syntax</a></li>
+        <li><a href="#resources">Resourcesx</a></li>
       </ul>
       <a href="#introduction">INTRODUCTION</a>
       <ul>
@@ -68,6 +69,10 @@ The Power o 10: Rules for Developing Safety-Critical Code [1]
 
 ### Syntax
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Resources
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+https://tinusaur.com/guides/avr-gcc-toolchain/
 
 <!-- INTRODUCTION -->
 ## INTRODUCTION

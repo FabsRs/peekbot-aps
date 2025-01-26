@@ -20,9 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef YMODEM_H
-#define YMODEM_H
+#include <avr/avr/interrupt.h>
+#include "ccommons.h"
+#include "pinout.h"
+#include "usart0.h"
 
-// TODO: Read Ymodem implementation and se how to include it in the project
-
-#endif//YMODEM_H
+#define F_CPU 16000000UL

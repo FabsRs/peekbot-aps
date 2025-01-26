@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.cs": "csharp",
+        "io.h": "c",
+        "iom328p.h": "c",
+        "core.h": "c"
+    }
+}

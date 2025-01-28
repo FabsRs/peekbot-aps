@@ -20,9 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#define F_CPU 16000000UL
+
+#define YMODEM_HEADER_SIZE  64
+#define YMODEM_CRC_SIZE     8
+#define CCSDS_HEADER_SIZE   64
+#define PAYLOAD_SIZE        1024
+#define USART0_BUFFER_SIZE  (YMODEM_HEADER_SIZE + YMODEM_CRC_SIZE + CCSDS_HEADER_SIZE + PAYLOAD_SIZE)
+
 #include <avr/avr/interrupt.h>
 #include "ccommons.h"
 #include "pinout.h"
 #include "usart0.h"
-
-#define F_CPU 16000000UL

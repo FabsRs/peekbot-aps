@@ -20,23 +20,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "core.h"
+#ifndef CCSDS_H
+#define CCSDS_H
 
-void main(void)
+#include "ccommons.h"
+
+typedef struct _CCSDS
 {
-    usart0.params.mode = USART0_MODE_ASYNC_NORMAL;
-    usart0.params.baudrate = USART0_BR_9600;
-    usart0.params.databits = USART0_DATABITS_8;
-    usart0.params.parity = USART0_PARITY_NONE;
-    usart0.params.stopbits = USART0_STOPBITS_1;
-    usart0.params.rx = USART0_RX_ENABLE;
-    usart0.params.tx = USART0_TX_ENABLE;
-    usart0_init(&usart0);
-    pinout_init();
+    uint8 version : 3;
+    uint8 packetType : 1;
+    uint8 secHeaderFlag : 1;
+    uint16 apid : 10;
+    uint8 payloadFlag : 1;
+    uint8 sequenceFlag : 2;
+    uint16 packetId : 14;
+    uint16 dataLength : 16;
+}*PCCSDS,CCSDS;
 
-    while(1)
-    {
-
-    }
-    return 0;
-}
+#endif//CCSDS_H

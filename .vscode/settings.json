@@ -3,6 +3,7 @@
         "*.cs": "csharp",
         "io.h": "c",
         "iom328p.h": "c",
-        "core.h": "c"
+        "core.h": "c",
+        "usart0.h": "c"
     }
 }

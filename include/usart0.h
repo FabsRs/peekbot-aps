@@ -29,10 +29,9 @@
 
 #ifndef USART0_BUFFER_SIZE
 #define USART0_BUFFER_SIZE	2048
-#endif 
+#endif
 
-#include <avr/avr/iom328p.h>
-#include <avr/avr/interrupt.h>
+#include "avr.h"
 #include "ccommons.h"
 
 #define USART0_MODE_ASYNC_NORMAL	0x01
@@ -114,8 +113,8 @@ int8 usart0_set_default(void);
 int8 usart0_set_frame(uint8 databits, uint8 parity, uint8 stopbits);
 int8 usart0_set_rx(uint8 rx);
 int8 usart0_set_tx(uint8 tx);
-int8 usart0_serial_read(PUSART0 usart0, uint8* data, uint16 size);
-int8 usart0_serial_write(PUSART0 usart0, uint8* data, uint16 size);
+int8 usart0_serial_receive(PUSART0 usart0, uint8* data, uint16 size);
+int8 usart0_serial_transmit(PUSART0 usart0, uint8* data, uint16 size);
 
 volatile static USART0 usart0;
 

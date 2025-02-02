@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <avr/avr/iom328p.h>
-#include <avr/avr/interrupt.h>
+#include "avr.h"
 
 #define HT_PCB          PORTB0  // OUT (Digital)        DDRB0:1     PORTB0:0
 #define AZ_EN           PORTB1  // OUT (Digital)        DDRB1:1     PORTB1:0

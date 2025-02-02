@@ -20,15 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#define F_CPU 16000000UL
+#include "ymodem.h"
 
-#define YMODEM_HEADER_SIZE  64
-#define YMODEM_CRC_SIZE     48
-#define CCSDS_HEADER_SIZE   64
-#define PAYLOAD_SIZE        1024
-#define USART0_BUFFER_SIZE  (YMODEM_HEADER_SIZE + YMODEM_CRC_SIZE + CCSDS_HEADER_SIZE + PAYLOAD_SIZE)
+uint8 ymodem_transmit(uint8* data)
+{
+    return 0;
+}
 
-#include <avr/avr/interrupt.h>
-#include "ccommons.h"
-#include "pinout.h"
-#include "usart0.h"
+uint8 yomdem_receive(uint8* data, const uint8* filename, uint32 filesize)
+{
+    return 0;
+}

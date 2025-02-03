@@ -27,10 +27,6 @@
 #define F_CPU 16000000UL
 #endif
 
-#ifndef USART0_BUFFER_SIZE
-#define USART0_BUFFER_SIZE	2048
-#endif
-
 #include "avr.h"
 #include "ccommons.h"
 
@@ -83,7 +79,7 @@ typedef struct _USART0_PARAMS
 
 typedef struct _USART0_BUFFER
 {
-	uint8 buffer[USART0_BUFFER_SIZE];
+	puint8 buffer;
 	uint16 size;
 	uint16 head;
 	uint16 tail;
@@ -97,7 +93,7 @@ typedef struct _USART0_STATUS
 	uint8 rx_void;
 }*PUSART0_STATUS,USART0_STATUS;
 
-typedef struct _USART0
+typedef volatile struct _USART0
 {
 	USART0_PARAMS params;
 	USART0_BUFFER rx;
@@ -105,17 +101,24 @@ typedef struct _USART0
 	USART0_STATUS status;
 }*PUSART0,USART0;
 
-int8 usart0_init(PUSART0 usart0);
-int8 usart0_isr_rxc();
-int8 usart0_isr_udre();
+int8 usart0_init(PUSART0 usart0, puint8 rxBuffer, uint16 rxBufferSize, puint8 txBuffer, uint16 txBufferSize);
 int8 usart0_set_baud(uint8 mode, uint32 baudrate);
-int8 usart0_set_default(void);
+int8 usart0_set_default();
 int8 usart0_set_frame(uint8 databits, uint8 parity, uint8 stopbits);
 int8 usart0_set_rx(uint8 rx);
 int8 usart0_set_tx(uint8 tx);
-int8 usart0_serial_receive(PUSART0 usart0, uint8* data, uint16 size);
-int8 usart0_serial_transmit(PUSART0 usart0, uint8* data, uint16 size);
 
-volatile static USART0 usart0;
+int8 usart0_serial_transmit_byte(char C);
+int8 usart0_serial_transmit(char* data, uint16 size);
+int8 usart0_serial_receive(char* data, uint16 size);
+
+// int8 usart0_isr_rxc();
+// int8 usart0_isr_udre();
+// int8 usart0_serial_receive(PUSART0 usart0, char* data, uint16 size);
+// int8 usart0_serial_transmit(PUSART0 usart0, char* data, uint16 size);
+
+// int8 usart0_serial_test_byte(char C);
+
+USART0 usart0;
 
 #endif//USART0_H

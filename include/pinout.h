@@ -21,6 +21,10 @@
 // SOFTWARE.
 
 #include "avr.h"
+#include "ccommons.h"
+
+#define PINOUT_ON       0x01
+#define PINOUT_OFF      0x02
 
 #define HT_PCB          PORTB0  // OUT (Digital)        DDRB0:1     PORTB0:0
 #define AZ_EN           PORTB1  // OUT (Digital)        DDRB1:1     PORTB1:0
@@ -48,4 +52,4 @@
 #define HT_AZ           PORTD6  // OUT (Digital)        DDRD6:1     PORTC6:0
 #define HT_EL           PORTD7  // OUT (Digital)        DDRD7:1     PORTC7:0
 
-int pinout_set(void);
+int8 pinout_init(void);

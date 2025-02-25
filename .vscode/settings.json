@@ -4,6 +4,9 @@
         "io.h": "c",
         "iom328p.h": "c",
         "core.h": "c",
-        "usart0.h": "c"
+        "usart0.h": "c",
+        "interrupt.h": "c",
+        "ccommons.h": "c",
+        "avr.h": "c"
     }
 }

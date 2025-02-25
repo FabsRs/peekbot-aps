@@ -20,6 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#ifndef CORE_H
+#define CORE_H
+
 #define F_CPU 16000000UL
 
 #define YMODEM_HEADER_SIZE  64
@@ -40,3 +43,5 @@
 #include "pinout.h"
 #include "usart0.h"
 #include "ymodem.h"
+
+#endif//CORE_H

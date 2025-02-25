@@ -22,16 +22,15 @@
 
 #include "usart0.h"
 
-int8 usart0_init(PUSART0 usart0, puint8 rxBuffer, uint16 rxBufferSize, puint8 txBuffer, uint16 txBufferSize)
+int8 usart0_init(puint8 rxBuffer, uint16 rxBufferSize, puint8 txBuffer, uint16 txBufferSize)
 {
-    __pi(usart0);
     __pi(rxBuffer);
     __pi(txBuffer);
-    __fi(usart0_set_default);
-    __fi(usart0_set_baud,usart0->params.mode, usart0->params.baudrate);
-    __fi(usart0_set_frame,usart0->params.databits, usart0->params.parity, usart0->params.stopbits);
-    __fi(usart0_set_rx,usart0->params.rx);
-    __fi(usart0_set_tx,usart0->params.tx);
+    __fi(usart0_set_default, /* NULL */);
+    __fi(usart0_set_baud,usart0.params.mode, usart0.params.baudrate);
+    __fi(usart0_set_frame,usart0.params.databits, usart0.params.parity, usart0.params.stopbits);
+    __fi(usart0_set_rx,usart0.params.rx);
+    __fi(usart0_set_tx,usart0.params.tx);
     
     if(rxBufferSize <= 0)
     {
@@ -42,14 +41,14 @@ int8 usart0_init(PUSART0 usart0, puint8 rxBuffer, uint16 rxBufferSize, puint8 tx
         return -1;
     }
 
-    usart0->rx.size = rxBufferSize;
-    usart0->rx.head = 0;
-    usart0->rx.tail = 0;
-    usart0->rx.count = 0;
-    usart0->tx.size = txBufferSize;
-    usart0->tx.head = 0;
-    usart0->tx.tail = 0;
-    usart0->tx.count = 0;
+    usart0.rx.size = rxBufferSize;
+    usart0.rx.head = 0;
+    usart0.rx.tail = 0;
+    usart0.rx.buffer = rxBuffer;
+    usart0.tx.size = txBufferSize;
+    usart0.tx.head = 0;
+    usart0.tx.tail = 0;
+    usart0.tx.buffer = txBuffer;
     return 0;
 }
 
@@ -84,10 +83,13 @@ int8 usart0_set_baud(uint8 mode, uint32 baudrate)
     return 0;
 }
 
-int8 usart0_set_default()
+int8 usart0_set_default(void)
 {
+    UCSR0A &= ~(1<<MPCM0);
+    UCSR0B &= ~(1<<TXCIE0);
     UCSR0B &= ~(1<<RXB80);
     UCSR0B &= ~(1<<TXB80);
+    UCSR0A &= ~(1<<UDRIE0);
     UCSR0C &= ~(1<<UMSEL00);
     UCSR0C &= ~(1<<UMSEL01);
     UCSR0C &= ~(1<<UCPOL0);
@@ -194,13 +196,9 @@ int8 usart0_set_tx(uint8 tx)
     switch (tx)
     {
     case USART0_TX_ENABLE:
-        UCSR0B |= (1<<UDRIE0);
-        UCSR0B |= (1<<TXCIE0);
         UCSR0B |= (1<<TXEN0);
-        break;
+    break;
     case USART0_TX_DISABLE:
-        UCSR0B &= ~(1<<UDRIE0);
-        UCSR0B &= ~(1<<TXCIE0);
         UCSR0B &= ~(1<<TXEN0);
         break;
     default:
@@ -210,172 +208,137 @@ int8 usart0_set_tx(uint8 tx)
     return 0;
 }
 
-int8 usart0_serial_transmit_byte(char C)
+int8 usart0_serial_tx(char* string, uint16 size)
 {
-    while(!(UCSR0A & (1<<UDRE0)));
-    UDR0 = C;
+    if(!string)
+        return -1;
+    for(uint16 i = 0 ; i < size; i++)
+    {
+        usart0_serial_tx_byte(string[i]);
+    }
     return 0;
 }
 
-int8 usart0_serial_transmit(char* data, uint16 size)
+int8 usart0_serial_tx_byte(char c)
 {
-    if(!data)
+    if(usart0.tx.head == usart0.tx.tail && bit_is_set(UCSR0A, UDRE0))
     {
-        return -1;
-    }
-    if (!size)
-    {
-        return -1;
-    }
-    for(uint16 i = 0 ; i < size ; i++)
-    {
-        usart0_serial_transmit_byte(data[i]);
-    }
-    
-    return 0;
-}
-
-// int8 usart0_serial_receive_byte(char* C)
-// {
-//     while(!(UCSR0A & (1<<RXC0)))
-//     return 0;
-// }
-
-int8 usart0_serial_receive(char* data, uint16 size)
-{
-    // UCSR0B &= ~(1<<RXCIE0);
-    // UCSR0B &= ~(1<<RXEN0);
-    if(!data)
-    {
-        return -1;
-    }
-
-    for(uint16 i = 0 ; i < size && usart0.rx.count; i++)
-    {
-        usart0.rx.buffer[usart0.rx.head] = data[i];
-        usart0.rx.count--;
-        usart0.rx.head++;
-        if(usart0.rx.head >= usart0.rx.size)
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
         {
-            usart0.rx.head = 0;
+            UDR0 = c;
+            UCSR0A |= (1<<TXC0);
+        }
+        return 0;
+    }
+    uint16 i = (usart0.tx.head + 1) % usart0.tx.size;
+    while(i == usart0.tx.tail) 
+    {
+        if(bit_is_clear(SREG, SREG_I))
+        {
+            if(bit_is_set(UCSR0A, UDRE0))
+            {
+                usart0_isr_udr();
+            }
         }
     }
-
+    usart0.tx.buffer[usart0.tx.head] = c;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    {
+        usart0.tx.head = i;
+        UCSR0B |= (1<<UDRIE0);
+    }
     return 0;
 }
 
-ISR(USART_RX_vect)
+int8 usart0_isr_udr(void)
 {
-    PORTB |= (1<<PORTB5);
-    if((usart0.rx.size - usart0.rx.count) <= 0)
+    uint8 c = usart0.tx.buffer[usart0.tx.tail];
+    usart0.tx.tail = (usart0.tx.tail + 1) % usart0.tx.size;
+    UDR0 = c;
+    UCSR0A |= (1<<TXC0);
+    if(usart0.tx.head == usart0.tx.tail)
     {
-        (void)UDR0;
+        UCSR0B &= ~(1<<UDRIE0);
     }
-    usart0.rx.buffer[usart0.rx.tail] = UDR0;
-    usart0.rx.count++;
-    usart0.rx.tail++;
-    if(usart0.rx.tail >= usart0.rx.size)
+    return 0;
+}
+
+ISR(USART_UDRE_vect, ISR_BLOCK)
+{
+    usart0_isr_udr();
+}
+
+int8 usart0_serial_rx(char* string, uint16 size)
+{
+    uint16 count = 0;
+    if(!string)
+        return -1;
+    usart0_delay_ms(usart0.params.timeout_ms);
+    count = usart0_serial_rx_count();
+    memset(string, 0, size);
+    for(int i = 0 ; i < size || i < count; i++)
     {
-        usart0.rx.tail = 0;
+        usart0_serial_rx_byte(string + i);
+    }
+    return 0;
+}
+
+uint16 usart0_serial_rx_count()
+{
+    return (usart0.rx.size + usart0.rx.head - usart0.rx.tail) % usart0.rx.size;
+}
+
+int8 usart0_serial_rx_flush()
+{
+    memset(usart0.rx.buffer, 0, usart0.rx.size);
+    usart0.rx.head = 0;
+    usart0.rx.tail = 0;
+    return 0;
+}
+
+int8 usart0_serial_rx_byte(char* c)
+{
+    if(usart0.rx.head == usart0.rx.tail)
+    {
+        return -1;
+    }
+    else
+    {
+        *c = usart0.rx.buffer[usart0.rx.tail];
+        usart0.rx.tail = (usart0.rx.tail + 1) % usart0.rx.size;
+        return 0;
     }
 }
 
+int8 usart0_isr_rx(void)
+{
+    if(bit_is_clear(UCSR0A, UPE0))
+    {
+        char c = UDR0;
+        uint16 i = (usart0.rx.head + 1) % usart0.rx.size;
+        if(i != usart0.rx.tail)
+        {
+            usart0.rx.buffer[usart0.rx.head] = c;
+            usart0.rx.head = i;
+        }
+    }
+    else
+    {
+        UDR0;
+    }
+    return 0;
+}
 
+ISR(USART_RX_vect, ISR_BLOCK)
+{
+    usart0_isr_rx();
+}
 
-// int8 usart0_serial_receive(PUSART0 usart0, char* data, uint16 size)
-// {
-//     if(!usart0 || !data)
-//     {
-//         return -1;
-//     }
-
-//     for(uint16 i = 0 ; i < size && usart0->rx.count; i++)
-//     {
-//         usart0->rx.buffer[usart0->rx.head] = data[i];
-//         usart0->rx.count--;
-//         usart0->rx.head++;
-//         if(usart0->rx.head >= usart0->rx.size)
-//             usart0->rx.head = 0;
-//     }
-
-//     return 0;
-// }
-
-// int8 usart0_serial_transmit(PUSART0 usart0, char* data, uint16 size)
-// {
-//     if(!usart0 || !data)
-//     {
-//         return -1;
-//     }
-//     if(size <= 0)
-//     {
-//         return -1;
-//     }
-//     if(size > usart0->tx.size - usart0->tx.count)
-//     {
-//         return -1;
-//     }
-
-//     for(uint16 i = 0 ; i < size ; i++)
-//     {
-//         usart0->tx.buffer[usart0->tx.tail] = data[i];
-//         usart0->tx.tail++;
-//         if(usart0->tx.tail >= usart0->tx.size)
-//             usart0->tx.tail = 0;
-//     }
-//     usart0->tx.count += size;
-//     usart0_isr_udre(usart0);
-    
-//     return 0;
-// }
-
-// int8 usart0_isr_rxc(PUSART0 usart0)
-// {
-//     if(!usart0)
-//     {
-//         return -1;
-//     }
-//     if((usart0->rx.size - usart0->rx.count) <= 0)
-//     {
-//         (void)UDR0;
-//         return -1;
-//     }
-//     usart0->rx.buffer[usart0->rx.tail] = UDR0;
-//     usart0->rx.count++;
-//     usart0->rx.tail++;
-//     if(usart0->rx.tail >= usart0->rx.size)
-//     {
-//         usart0->rx.tail = 0;
-//     }
-//     return 0;
-// }
-
-// int8 usart0_isr_udre(PUSART0 usart0)
-// {
-//     if(usart0->tx.count)
-//     {
-// 	    while(!(UCSR0A & (1<<UDRE0)));
-//         UCSR0A &= (1<<TXC0);
-//         UDR0 = usart0->tx.buffer[usart0->tx.head];
-//         usart0->tx.count--;
-//         usart0->tx.head++;
-//         if(usart0->tx.head >= usart0->tx.size)
-//         {
-//             usart0->tx.head = 0;
-//         }
-//         UCSR0A &= ~(1<<UDRE0);
-//     }
-//     return 0;
-// }
-
-
-
-// ISR(USART_RX_vect)
-// {
-//     usart0_isr_rxc(&usart0);
-// }
-
-// ISR(USART_UDRE_vect)
-// {
-//     usart0_isr_udre(&usart0);
-// }
+int8 usart0_delay_ms(uint16 time)
+{
+    do{
+        _delay_ms(1);
+        time--;
+    }while(!time);
+    return 0;
+}

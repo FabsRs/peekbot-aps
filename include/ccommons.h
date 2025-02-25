@@ -34,6 +34,7 @@
 #define STR64               64
 #define STR128              128
 #define STR256              256
+#define STR512              512
 #define STR1K               1024
 
 /* TYPES */

@@ -33,21 +33,25 @@ int main(void)
     usart0.params.stopbits = USART0_STOPBITS_1;
     usart0.params.rx = USART0_RX_ENABLE;
     usart0.params.tx = USART0_TX_ENABLE;
+    usart0.params.timeout_ms = 250;
 
     uint8 rxBuffer[RX_BUFFER_SIZE];
     uint8 txBuffer[TX_BUFFER_SIZE];
     
     pinout_init();
-    usart0_init(&usart0, rxBuffer, RX_BUFFER_SIZE, txBuffer, TX_BUFFER_SIZE);
-    
-    _delay_ms(2000);
+    usart0_init(rxBuffer, RX_BUFFER_SIZE, txBuffer, TX_BUFFER_SIZE);
 
-    char message[64] = {0};
+    varchar(STR64, serial);
 
-    while(1)
-    {
-        while(!usart0.rx.count);
-        break;
+    sei();
+
+    while(1){
+        if(usart0_serial_rx_count() >= 27)
+        {
+            memset(serial, 0, sizeof(serial));
+            usart0_serial_rx(serial, sizeof(serial));
+            usart0_serial_tx(serial, strlen(serial) - 1);
+        }
     }
 
     return 0;

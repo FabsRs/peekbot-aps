@@ -27,6 +27,9 @@
 #define F_CPU 16000000UL
 #endif
 
+#include <avr/string.h>
+#include <util/atomic.h>
+#include <util/delay.h>
 #include "avr.h"
 #include "ccommons.h"
 
@@ -75,6 +78,7 @@ typedef struct _USART0_PARAMS
 	uint8 stopbits;
 	uint8 rx;
 	uint8 tx;
+	uint16 timeout_ms;
 }*PUSART0_PARAMS,USART0_PARAMS;
 
 typedef struct _USART0_BUFFER
@@ -83,7 +87,6 @@ typedef struct _USART0_BUFFER
 	uint16 size;
 	uint16 head;
 	uint16 tail;
-	uint16 count;
 }*PUSRAT0_BUFFER,USART0_BUFFER;
 
 typedef struct _USART0_STATUS
@@ -93,7 +96,7 @@ typedef struct _USART0_STATUS
 	uint8 rx_void;
 }*PUSART0_STATUS,USART0_STATUS;
 
-typedef volatile struct _USART0
+typedef struct _USART0
 {
 	USART0_PARAMS params;
 	USART0_BUFFER rx;
@@ -101,24 +104,23 @@ typedef volatile struct _USART0
 	USART0_STATUS status;
 }*PUSART0,USART0;
 
-int8 usart0_init(PUSART0 usart0, puint8 rxBuffer, uint16 rxBufferSize, puint8 txBuffer, uint16 txBufferSize);
+int8 usart0_init(puint8 rxBuffer, uint16 rxBufferSize, puint8 txBuffer, uint16 txBufferSize);
 int8 usart0_set_baud(uint8 mode, uint32 baudrate);
 int8 usart0_set_default();
 int8 usart0_set_frame(uint8 databits, uint8 parity, uint8 stopbits);
 int8 usart0_set_rx(uint8 rx);
 int8 usart0_set_tx(uint8 tx);
 
-int8 usart0_serial_transmit_byte(char C);
-int8 usart0_serial_transmit(char* data, uint16 size);
-int8 usart0_serial_receive(char* data, uint16 size);
+int8 usart0_serial_tx(char* string, uint16 size);
+int8 usart0_serial_tx_byte(char C);
+int8 usart0_isr_udr(void);
+int8 usart0_serial_rx(char* string, uint16 size);
+uint16 usart0_serial_rx_count();
+int8 usart0_serial_rx_flush();
+int8 usart0_serial_rx_byte(char* c);
+int8 usart0_isr_rx(void);
+int8 usart0_delay_ms(uint16 time);
 
-// int8 usart0_isr_rxc();
-// int8 usart0_isr_udre();
-// int8 usart0_serial_receive(PUSART0 usart0, char* data, uint16 size);
-// int8 usart0_serial_transmit(PUSART0 usart0, char* data, uint16 size);
-
-// int8 usart0_serial_test_byte(char C);
-
-USART0 usart0;
+volatile USART0 usart0;
 
 #endif//USART0_H

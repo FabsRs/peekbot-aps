@@ -25,28 +25,39 @@
 #ifndef YMODEM_H
 #define YMODEM_H
 
-#define YMODEM_PACKET_SEQNO_INDEX      1
-#define YMODEM_PACKET_SEQNO_COMP_INDEX 2
-#define YMODEM_PACKET_HEADER           3
-#define YMODEM_PACKET_TRAILER          2
-#define YMODEM_PACKET_OVERHEAD         PACKET_HEADER + PACKET_TRAILER
-#define YMODEM_PACKET_SIZE             128
-#define YMODEM_PACKET_1K_SIZE          1024
-#define YMODEM_FILE_NAME_LENGTH        256
-#define YMODEM_FILE_SIZE_LENGTH        16
-#define YMODEM_SOH                     0x01 /* start of 128-byte data packet */
-#define YMODEM_STX                     0x02 /* start of 1024-byte data packet */
-#define YMODEM_EOT                     0x04 /* end of transmission */
-#define YMODEM_ACK                     0x06 /* acknowledge */
-#define YMODEM_NAK                     0x15 /* negative acknowledge */
-#define YMODEM_CA                      0x18 /* two of these in succession aborts transfer */
-#define YMODEM_CRC16                   0x43 /* 'C' == 0x43, request 16-bit CRC */
-#define YMODEM_ABORT1                  0x41 /* 'A' == 0x41, abort by user */
-#define YMODEM_ABORT2                  0x61 /* 'a' == 0x61, abort by user */
-#define YMODEM_NAK_TIMEOUT             5000
-#define YMODEM_MAX_ERRORS              5
+#define SOH 0x01
+#define STX 0x02
+#define EOT 0x04
+#define ACK 0x06
+#define NAK 0x15
+#define CAN 0x18
+#define CRC16_POLY 0x1021
 
-uint8 ymodem_transmit(uint8* data);
-uint8 yomdem_receive(uint8* data, const uint8* filename, uint32 filesize);
+typedef enum {
+    YMODEM_OK,
+    YMODEM_ERROR,
+    YMODEM_TIMEOUT
+} ymodem_status;
+
+typedef struct _YMODEM_FILE{
+    const uint8* data;
+    uint32 size;
+    char filename[256];
+}*PYMODEM_FILE, YMODEM_FILE;
+
+uint16 ymodem_crc16(const uint8* data, uint16 size)
+{    uint16 crc = 0;
+    for (uint16 i = 0; i < size; i++) {
+        crc ^= (uint16)data[i] << 8;
+        for (uint8 j = 0; j < 8; j++) {
+            if (crc & 0x8000) {
+                crc = (crc << 1) ^ CRC16_POLY;
+            } else {
+                crc <<= 1;
+            }
+        }
+    }
+    return crc;
+}
 
 #endif//YMODEM_H

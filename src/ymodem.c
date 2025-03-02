@@ -22,12 +22,3 @@
 
 #include "ymodem.h"
 
-uint8 ymodem_transmit(uint8* data)
-{
-    return 0;
-}
-
-uint8 yomdem_receive(uint8* data, const uint8* filename, uint32 filesize)
-{
-    return 0;
-}

@@ -20,29 +20,37 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef CORE_H
-#define CORE_H
-
-#define F_CPU 16000000UL
-
-#define YMODEM_HEADER_SIZE  64
-#define YMODEM_CRC_SIZE     48
-#define CCSDS_HEADER_SIZE   64
-#define PAYLOAD_SIZE        1024
-#define RX_BUFFER_SIZE      512
-#define TX_BUFFER_SIZE      512
-
-#include <avr/avr/interrupt.h>
-#include <avr/stdio.h>
-#include <avr/stdint.h>
-#include <avr/stdlib.h>
-#include <avr/unistd.h>
-#include <avr/string.h>
-#include <avr/util/delay.h>
-#include "ccommons.h"
-#include "pinout.h"
-#include "usart0.h"
-#include "ymodem.h"
 #include "encoder.h"
 
-#endif//CORE_H
+int8 encoder_abs_init(PENCODER_ABS encoder_abs)
+{
+    if(!encoder_abs)
+        return -1;
+
+    return 0;
+}
+
+int8 encoder_inc_init(PENCODER_INC encoder_inc)
+{
+    if(!encoder_inc)
+        return -1;
+    return 0;
+}
+
+int8 encoder_abs_read(PENCODER_ABS encoder_abs)
+{
+    if(!encoder_abs)
+        return -1;
+
+    return 0;
+}
+
+int8 encoder_inc_read(PENCODER_INC encoder_inc)
+{
+    if(!encoder_inc)
+        return -1;
+    int8 state = encoder_inc->state;
+    encoder_inc->state = (pinout_pin(encoder_inc->pinA, encoder_inc->maskA) | pinout_pin(encoder_inc->pinB, encoder_inc->maskA) << 1);
+    
+    return 0;
+}

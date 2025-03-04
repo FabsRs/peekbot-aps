@@ -45,19 +45,6 @@ typedef struct _YMODEM_FILE{
     char filename[256];
 }*PYMODEM_FILE, YMODEM_FILE;
 
-uint16 ymodem_crc16(const uint8* data, uint16 size)
-{    uint16 crc = 0;
-    for (uint16 i = 0; i < size; i++) {
-        crc ^= (uint16)data[i] << 8;
-        for (uint8 j = 0; j < 8; j++) {
-            if (crc & 0x8000) {
-                crc = (crc << 1) ^ CRC16_POLY;
-            } else {
-                crc <<= 1;
-            }
-        }
-    }
-    return crc;
-}
+uint16 ymodem_crc16(const uint8* data, uint16 size);
 
 #endif//YMODEM_H

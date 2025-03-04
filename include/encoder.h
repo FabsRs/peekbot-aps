@@ -20,29 +20,38 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef CORE_H
-#define CORE_H
+#ifndef ENCODER_H
+#define ENCODER_H
 
-#define F_CPU 16000000UL
-
-#define YMODEM_HEADER_SIZE  64
-#define YMODEM_CRC_SIZE     48
-#define CCSDS_HEADER_SIZE   64
-#define PAYLOAD_SIZE        1024
-#define RX_BUFFER_SIZE      512
-#define TX_BUFFER_SIZE      512
-
-#include <avr/avr/interrupt.h>
-#include <avr/stdio.h>
-#include <avr/stdint.h>
-#include <avr/stdlib.h>
-#include <avr/unistd.h>
-#include <avr/string.h>
-#include <avr/util/delay.h>
+#include "avr.h"
 #include "ccommons.h"
 #include "pinout.h"
-#include "usart0.h"
-#include "ymodem.h"
-#include "encoder.h"
 
-#endif//CORE_H
+#define ENCODER_DIR_CCW     1
+#define ENCODER_DIR_CW      2
+
+typedef struct _ENCODER_ABS
+{
+    int8 pin;
+    int8 mask;
+    float angle;
+}*PENCODER_ABS, ENCODER_ABS;
+
+typedef struct _ENCODER_INC
+{
+    int8 pinA;
+    int8 maskA;
+    int8 pinB;
+    int8 maskB;
+    float angle;
+    int8 direction;
+    int8 state:2;
+    uint16 ppr;
+}*PENCODER_INC, ENCODER_INC;
+
+int8 encoder_abs_init(PENCODER_ABS encoder_abs);
+int8 encoder_inc_init(PENCODER_INC encoder_inc);
+int8 encoder_abs_read(PENCODER_ABS encoder_abs);
+int8 encoder_inc_read(PENCODER_INC encoder_inc);
+
+#endif//ENCODER_H

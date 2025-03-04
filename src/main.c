@@ -26,6 +26,11 @@
 
 int main(void)
 {
+    uint8 rxBuffer[RX_BUFFER_SIZE];
+    uint8 txBuffer[TX_BUFFER_SIZE];
+    // ENCODER_ABS orbis;
+    ENCODER_INC amt103;
+
     usart0.params.mode = USART0_MODE_ASYNC_NORMAL;
     usart0.params.baudrate = USART0_BR_57600;
     usart0.params.databits = USART0_DATABITS_8;
@@ -35,9 +40,15 @@ int main(void)
     usart0.params.tx = USART0_TX_ENABLE;
     usart0.params.timeout_ms = 250;
 
-    uint8 rxBuffer[RX_BUFFER_SIZE];
-    uint8 txBuffer[TX_BUFFER_SIZE];
-    
+    amt103.pinA = PINOUT_D;
+    amt103.pinB = PINOUT_D;
+    amt103.maskA = EL_ENC_CH_A;
+    amt103.maskB = EL_ENC_CH_B;
+    amt103.ppr = 2048;
+    amt103.state = 0x00;
+    amt103.angle = 0;
+    amt103.direction = 0;
+
     pinout_init();
     usart0_init(rxBuffer, RX_BUFFER_SIZE, txBuffer, TX_BUFFER_SIZE);
 
@@ -46,13 +57,16 @@ int main(void)
     sei();
 
     while(1){
-        if(usart0_serial_rx_count() >= 27)
-        {
-            memset(serial, 0, sizeof(serial));
-            usart0_serial_rx(serial, sizeof(serial));
-            usart0_serial_tx(serial, strlen(serial) - 1);
-        }
+        if(bit_is_set(PIND, PIND5))
+            pinout_port(PINOUT_B, 5, PINOUT_ENABLE);
+        else
+            pinout_port(PINOUT_B, 5, PINOUT_DISABLE);
+        memset(serial, 0, STR64);
+        snprintf(serial, STR64, "Value: %d\n", pinout_pin(PINOUT_D, PIND5));
+        usart0_serial_tx(serial, strlen(serial));
     }
 
     return 0;
 }
+
+

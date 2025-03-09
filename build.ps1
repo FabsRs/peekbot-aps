@@ -51,7 +51,7 @@ $P_OBJECTS = $OBJECTS | ForEach-Object { "$OBJ$_" }
 &$CC $IFLAGS -c $CFLAGS $DEF $SRC'usart0.c' -o $OBJ'usart0.o'
 &$CC $IFLAGS -c $CFLAGS $DEF $SRC'ymodem.c' -o $OBJ'ymodem.o'
 
-&$CC $LFLAGS $P_OBJECTS -o $BIN$ELF -lm
+&$CC $LFLAGS $P_OBJECTS -o $BIN$ELF -lprintf_flt -lm
 
 &$OBJCPY $OFLAGS $BIN$ELF $BIN$HEX
 

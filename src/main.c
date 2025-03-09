@@ -45,9 +45,10 @@ int main(void)
     amt103.maskA = EL_ENC_CH_A;
     amt103.maskB = EL_ENC_CH_B;
     amt103.ppr = 2048;
-    amt103.state = 0x00;
+    amt103.state = 0;
     amt103.angle = 0;
     amt103.direction = 0;
+    encoder_inc_get_state(&amt103);
 
     pinout_init();
     usart0_init(rxBuffer, RX_BUFFER_SIZE, txBuffer, TX_BUFFER_SIZE);
@@ -57,12 +58,9 @@ int main(void)
     sei();
 
     while(1){
-        if(bit_is_set(PIND, PIND5))
-            pinout_port(PINOUT_B, 5, PINOUT_ENABLE);
-        else
-            pinout_port(PINOUT_B, 5, PINOUT_DISABLE);
+        encoder_inc_read(&amt103);
         memset(serial, 0, STR64);
-        snprintf(serial, STR64, "Value: %d\n", pinout_pin(PINOUT_D, PIND5));
+        snprintf(serial, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
         usart0_serial_tx(serial, strlen(serial));
     }
 

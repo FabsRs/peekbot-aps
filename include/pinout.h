@@ -64,27 +64,27 @@
 #define A5              D19
 
 // APS LAYOUT
-#define OBC_RX              PORTD0      // IN (Digital)         DDRD0:0     PORTC0:0
-#define OBC_TX              PORTD1      // OUT (Digital)        DDRD1:1     PORTC1:0
-#define HT_PBC_G            PORTD2      // OUT (Digital)        DDRB0:1     PORTB0:0
-#define EL_EN               PORTD3      // OUT (Digital)        DDRB2:1     PORTB2:0
-#define EL_PH               PORTD4      // OUT (Digital)        DDRB5:1     PORTB5:0
-#define EL_ENC_CH_B         PORTD5      // IN (Digital)         DDRD4:0     PORTC4:0
-#define EL_ENC_CH_A         PORTD6      // IN (Digital)         DDRD5:0     PORTC5:0
-#define HT_EL_G_UB          PORTD7      // OUT (Digital)        DDRD6:1     PORTC6:0
+#define OBC_RX              PORTD0      // IN (Digital)         DDRD0:0     PORTC0:0    D0
+#define OBC_TX              PORTD1      // OUT (Digital)        DDRD1:1     PORTC1:0    D1
+#define HT_PBC_G            PORTD2      // OUT (Digital)        DDRD2:1     PORTB0:0    D2
+#define EL_EN               PORTD3      // OUT (Digital)        DDRD3:1     PORTB2:0    D3
+#define EL_PH               PORTD4      // OUT (Digital)        DDRD4:1     PORTB5:0    D4
+#define EL_ENC_CH_B         PORTD5      // IN (Digital)         DDRD5:0     PORTC4:0    D5
+#define EL_ENC_CH_A         PORTD6      // IN (Digital)         DDRD6:0     PORTC5:0    D6
+#define HT_EL_G_UB          PORTD7      // OUT (Digital)        DDRD7:1     PORTC6:0    D7
 
-#define HT_AZ_G_UB          PORTB0      // OUT (Digital)        DDRD7:1     PORTC7:0
-#define AZ_EN               PORTB1      // OUT (Digital)        DDRB1:1     PORTB1:0
-#define AZ_PH               PORTB2      // OUT (Digital)        DDRB4:1     PORTB4:0
-#define AZ_ENC_STA          PORTB3      // IN (Digital)         DDRD3:0     PORTC3:0
-#define AZ_ENC_PWM          PORTB4      // IN (Digital)         DDRD2:0     PORTC2:0
+#define HT_AZ_G_UB          PORTB0      // OUT (Digital)        DDRB0:1     PORTC7:0    D8
+#define AZ_EN               PORTB1      // OUT (Digital)        DDRB1:1     PORTB1:0    D9
+#define AZ_PH               PORTB2      // OUT (Digital)        DDRB2:1     PORTB4:0    D10
+#define AZ_ENC_STA          PORTB3      // IN (Digital)         DDRD3:0     PORTC3:0    D11
+#define AZ_ENC_PWM          PORTB4      // IN (Digital)         DDRD4:0     PORTC2:0    D12
 
-#define TH_PCB_A_TEMP       PORTC0      // IN (Analog)          DDRC0:0     PORTC0:0
-#define TH_PCB_B_TEMP       PORTC1      // IN (Analog)          DDRC1:0     PORTC1:0
-#define TH_AZ_TEMP          PORTC2      // IN (Analog)          DDRC2:0     PORTC2:0
-#define TH_EL_TEMP          PORTC3      // IN (Analog)          DDRC3:0     PORTC3:0
-#define AZ_SHUNT_UB         PORTC4      // IN (Analog)          DDRC4:0     PORTC4:0
-#define EL_SHUNT_UB         PORTC5      // IN (Analog)          DDRC5:0     PORTC5:0
+#define TH_PCB_A_TEMP       PORTC0      // IN (Analog)          DDRC0:0     PORTC0:0    A0
+#define TH_PCB_B_TEMP       PORTC1      // IN (Analog)          DDRC1:0     PORTC1:0    A1
+#define TH_AZ_TEMP          PORTC2      // IN (Analog)          DDRC2:0     PORTC2:0    A2
+#define TH_EL_TEMP          PORTC3      // IN (Analog)          DDRC3:0     PORTC3:0    A3
+#define AZ_SHUNT_UB         PORTC4      // IN (Analog)          DDRC4:0     PORTC4:0    A4
+#define EL_SHUNT_UB         PORTC5      // IN (Analog)          DDRC5:0     PORTC5:0    A5
 
 int8 pinout_init(void);
 int8 pinout_pin(uint8 pin, uint8 mask);

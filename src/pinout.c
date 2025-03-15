@@ -5,9 +5,9 @@ int8 pinout_init(void)
     DDRB = 0x00;
     DDRC = 0x00;
     DDRD = 0x00;
-    DDRB = (1 << DDB0) | (1 << DDB1) | (1 << DDB2) | (1 << DDB5);
+    DDRB = (1 << HT_AZ_G_UB) | (1 << AZ_EN) | (1 << AZ_PH) | (1 << DEBUG_LED);
     DDRC = 0x00;
-    DDRD = (1 << DDD1) | (1 << DDD2) | (1 << DDD3) | (1 << DDD4) | (1 << DDD7);
+    DDRD = (1 << OBC_TX) | (1 << HT_PCB_G) | (1 << EL_EN) | (1 << EL_PH) | (1 << HT_EL_G_UB);
     PORTB = 0x00;
     PORTC = 0x00;
     PORTD = 0X00;

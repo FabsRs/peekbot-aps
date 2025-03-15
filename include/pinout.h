@@ -66,7 +66,7 @@
 // APS LAYOUT
 #define OBC_RX              PORTD0      // IN (Digital)         DDRD0:0     PORTD0:0    D0
 #define OBC_TX              PORTD1      // OUT (Digital)        DDRD1:1     PORTD1:0    D1
-#define HT_PBC_G            PORTD2      // OUT (Digital)        DDRD2:1     PORTD2:0    D2
+#define HT_PCB_G            PORTD2      // OUT (Digital)        DDRD2:1     PORTD2:0    D2
 #define EL_EN               PORTD3      // OUT (Digital)        DDRD3:1     PORTD3:0    D3
 #define EL_PH               PORTD4      // OUT (Digital)        DDRD4:1     PORTD4:0    D4
 #define EL_ENC_CH_B         PORTD5      // IN (Digital)         DDRD5:0     PORTD5:0    D5
@@ -77,8 +77,8 @@
 #define AZ_EN               PORTB1      // OUT (Digital)        DDRB1:1     PORTB1:0    D9
 #define AZ_PH               PORTB2      // OUT (Digital)        DDRB2:1     PORTB2:0    D10
 #define AZ_ENC_STA          PORTB3      // IN (Digital)         DDRB3:0     PORTB3:0    D11
-#define AZ_ENC_PWM          PORTB4      // IN (Digital)         DDRB4:0     PORTB4:1    D12
-#define DEBUG_LED           PORTB5      // OUT (Digital)        DDRB5:1     PORTB5:1    D13
+#define AZ_ENC_PWM          PORTB4      // IN (Digital)         DDRB4:0     PORTB4:0    D12
+#define DEBUG_LED           PORTB5      // OUT (Digital)        DDRB5:1     PORTB5:0    D13
 
 #define TH_PCB_A_TEMP       PORTC0      // IN (Analog)          DDRC0:0     PORTC0:0    A0
 #define TH_PCB_B_TEMP       PORTC1      // IN (Analog)          DDRC1:0     PORTC1:0    A1

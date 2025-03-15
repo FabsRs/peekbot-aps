@@ -30,6 +30,7 @@ int main(void)
     uint8 txBuffer[TX_BUFFER_SIZE];
     // ENCODER_ABS orbis;
     ENCODER_INC amt103;
+    uint32 time = 0;
 
     usart0.params.mode = USART0_MODE_ASYNC_NORMAL;
     usart0.params.baudrate = USART0_BR_57600;
@@ -50,6 +51,12 @@ int main(void)
     amt103.direction = 0;
     encoder_inc_get_state(&amt103);
 
+    // orbis.pin = PINOUT_B;
+    // orbis.maskPWM = AZ_ENC_PWM;
+    // orbis.maskStatus = AZ_ENC_STA;
+    // orbis.pulseWidth = 0;
+    // orbis.angle = 0;
+
     pinout_init();
     usart0_init(rxBuffer, RX_BUFFER_SIZE, txBuffer, TX_BUFFER_SIZE);
 
@@ -58,10 +65,16 @@ int main(void)
     sei();
 
     while(1){
+        time++;
         encoder_inc_read(&amt103);
-        memset(serial, 0, STR64);
-        snprintf(serial, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
-        usart0_serial_tx(serial, strlen(serial));
+        if(time >= 1000)
+        {
+            memset(serial, 0, STR64);
+            snprintf(serial, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
+            usart0_serial_tx(serial, strlen(serial));
+            time = 0;
+        }
+
     }
 
     return 0;

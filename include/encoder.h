@@ -37,8 +37,12 @@
 
 typedef struct _ENCODER_ABS
 {
+    // Parameters
     int8 pin;
-    int8 mask;
+    int8 maskPWM;
+    int8 maskStatus;
+    // State Variables
+    uint32 pulseWidth;
     float angle;
 }*PENCODER_ABS, ENCODER_ABS;
 
@@ -58,6 +62,7 @@ typedef struct _ENCODER_INC
 
 int8 encoder_abs_init(PENCODER_ABS encoder_abs);
 int8 encoder_inc_init(PENCODER_INC encoder_inc);
+int8 encoder_abs_get_state(PENCODER_ABS encoder_abs);
 int8 encoder_abs_read(PENCODER_ABS encoder_abs);
 int8 encoder_inc_get_state(PENCODER_INC encoder_inc);
 int8 encoder_inc_read(PENCODER_INC encoder_inc);

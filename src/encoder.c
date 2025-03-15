@@ -22,25 +22,14 @@
 
 #include "encoder.h"
 
-int8 encoder_abs_init(PENCODER_ABS encoder_abs)
-{
-    if(!encoder_abs)
-        return -1;
-
-    return 0;
-}
-
-int8 encoder_inc_init(PENCODER_INC encoder_inc)
-{
-    if(!encoder_inc)
-        return -1;
-    return 0;
-}
-
 int8 encoder_abs_read(PENCODER_ABS encoder_abs)
 {
     if(!encoder_abs)
         return -1;
+    if(pinout_pin(encoder_abs->pin, encoder_abs->maskPWM))
+    {
+        encoder_abs->pulseWidth++;
+    }
 
     return 0;
 }

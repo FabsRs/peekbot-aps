@@ -2,12 +2,19 @@
 
 int8 pinout_init(void)
 {
-    DDRB = (1 << DDB1) | (1 << DDB2) | (1 << DDB3) | (1 << DDB4) | (1 << DDB7) | (1 << DDB5);
+    DDRB = 0x00;
     DDRC = 0x00;
-    DDRD = (1 << DDD0) | (1 << DDD1) | (1 << DDD2);
+    DDRD = 0x00;
+    DDRB = (1 << DDB0) | (1 << DDB1) | (1 << DDB2) | (1 << DDB5);
+    DDRC = 0x00;
+    DDRD = (1 << DDD1) | (1 << DDD2) | (1 << DDD3) | (1 << DDD4) | (1 << DDD7);
     PORTB = 0x00;
     PORTC = 0x00;
-    PORTD = 0x00;
+    PORTD = 0X00;
+    OCR2B = 128;
+    TCCR2A |= (1 << COM2B1);
+    TCCR2A |= (1 << WGM21) | (1 << WGM20);
+    TCCR2B |= (1 << CS20) | (1 << CS21) | (1 << CS22);
     return 0;
 }
 

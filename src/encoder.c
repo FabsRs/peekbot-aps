@@ -22,17 +22,47 @@
 
 #include "encoder.h"
 
-int8 encoder_abs_read(PENCODER_ABS encoder_abs)
+int8 encoder_abs_init(PENCODER_ABS encoder_abs)
 {
     if(!encoder_abs)
         return -1;
-    if(pinout_pin(encoder_abs->pin, encoder_abs->maskPWM))
-    {
-        encoder_abs->pulseWidth++;
-    }
 
     return 0;
 }
+
+int8 encoder_inc_init(PENCODER_INC encoder_inc)
+{
+    if(!encoder_inc)
+        return -1;
+    return 0;
+}
+
+int8 encoder_abs_read(PENCODER_ABS encoder_abs)
+{
+    encoder_abs_calibrate(encoder_abs);
+    for(int i=0;i<262144||(!(bit_is_set(TIMSK2,OCIE2A)));i++);
+    encoder_abs_angle(encoder_abs);
+    return 0;
+}
+
+int8 encoder_abs_angle(PENCODER_ABS encoder_abs)
+{
+    encoder_abs->angle=(enc_abs_counter>>2)-1;
+}
+
+int8 encoder_abs_calibrate(PENCODER_ABS encoder_abs)
+{
+    for(int i=0;i<262144||(!pinout_pin(encoder_abs->pin,encoder_abs->mask));i++);
+    TIMSK2|=1<<OCIE2A;
+return 0;
+}
+
+ISR(TIMER2_COMPA_vect,ISR_BLOCK){ 
+    enc_tim_counter++;
+   enc_abs_counter += bit_is_set(PINB, AZ_ENC_PWM);
+   TIMSK2|=!(enc_tim_counter%16384)<<OCIE2A;
+}
+
 
 int8 encoder_inc_get_state(PENCODER_INC encoder_inc)
 {

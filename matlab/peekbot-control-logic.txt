@@ -4,15 +4,15 @@ clc; clear; close all;
 
 g = single(9.8067);     % acceleration due to gravity (downward) [m/s^2]
 m = single(1.65);       % Antenna Mass [kg]
-Vs = 12;                % Supply Voltage [V]
+Vs = single(12);        % Supply Voltage [V]
 
 % ---------- Elevation & Azimuth Parameters ---------
 
-I_el = single(0.02523); % Moment of Inertia (EL)[kg.m^2]
-L_el = single(0.10986); % Antenna Moment Arm (EL) [m]
-FOS_el = single(1.4);      % Factor of Safety
-I_az = single(0.02035); % Moving Assy Mom. of Inertia about AZ Axis [kg/m^2]
-FOS_az = single(2.8);      % Factor of Safety 
+I_el = single(0.02523);     % Moment of Inertia (EL)[kg.m^2]
+L_el = single(0.10986);     % Antenna Moment Arm (EL) [m]
+FOS_el = single(1.4);       % Factor of Safety
+I_az = single(0.02035);     % Moving Assy Mom. of Inertia about AZ Axis [kg/m^2]
+FOS_az = single(2.8);       % Factor of Safety 
 
 % ------------ Time --------------------
 total_time = single(30);        % Time Interval [s]
@@ -20,31 +20,42 @@ dt = single(0.1);               % Time step [s]
 time = single(0:dt:total_time); % Time vector [s]
 N = single(length(time));       % Number of time steps 
 
-% ---------- Elevation Motor Parameters (Abra) -------------
+% ---------- Elevation Motor Parameters (Transmotec) -------------
 
-I_el_stall = single(1.5);     % stall current estimated for Abra motor [A] 
-I_el_no_load = single(0.045);  % No load current rating for Az motor [A]
-tau_el = single(0.005); % Estimating time const to 5ms
-omega_el_no_load = single(30*2*pi/60); % [rad/s]
-R_el_motor = single(Vs/I_el_stall); % [ohm]
-L_el_motor = single(R_el_motor * tau_el); 
-K_e_el = single((Vs - (I_el_no_load * R_el_motor))/(omega_el_no_load)); % Back emf constant
-K_t_el = K_e_el; % for DC motors, back emf const = torque const
+I_el_stall = single(0.24);    % nominal current[A] 
+I_el_no_load = single(0.06);  % No load current [A]
+tau_el = single(0.005);       % Estimating time const to 5ms
 
-% ---------- Azimuth Motor Parameters (Abra)-------------
+omega_el_no_load = single(4900*2*pi/60); % [rad/s]
+omega_el_nominal = single(21*2*pi/60);
 
-I_az_stall = single(1.5);     % stall current estimated for Abra motor
-I_az_no_load = single(0.045);  % No load current rating for Az motor
-tau_az = single(0.005); % Estimating time const to 5ms
-omega_az_no_load = single(6*2*pi/60); % in rad/s
+R_el_motor = single(Vs/I_el_stall);       % motor resistance [ohm]
+L_el_motor = single(R_el_motor*tau_el);   % motor inductance [H]
+K_e_el = single((Vs-(I_el_no_load * R_el_motor))/(omega_el_no_load)); % Back emf constant [V/(rad/s)]
+gear_ratio_el = single(200); % Gear reduction
+
+J_el = single(I_el * (gear_ratio_el)/100); % motor inertia
+b_el = single(0.6 * J_el); % damping coeff
+K_t_el = single(K_e_el *(gear_ratio_el)); % Adjusting torque constant by gear ratio
+
+% ---------- Azimuth Motor Parameters (Transmotec)-------------
+
+I_az_stall = single(1.5);     % nominal current [A]
+I_az_no_load = single(0.06);  % No load current [A]
+tau_az = single(0.005);       % Estimating time const to 5ms
+
+omega_az_no_load = single(4900*2*pi/60);   % in rad/s
+omega_az_nominal = single((5*2*pi)/60);    % in rad/s (after gearing)
+
 R_az_motor = single(Vs/I_az_stall); % [ohm] Resistance for Az motor
 L_az_motor = single(R_az_motor * tau_az); % [H] Inductance of the Az motor
-K_e_az = single((Vs - (I_az_no_load * R_az_motor))/(omega_az_no_load)); % Back emf constant
-K_t_az = K_e_az; % for DC motors, back emf const = torque const
 
-% ------ Desired Setpoints -----------
-theta_el_desired = single(deg2rad(45))*ones(size(time)); 
-theta_az_desired = single(deg2rad(90))*ones(size(time));
+K_e_az = single((Vs - (I_az_no_load * R_az_motor))/(omega_az_no_load)); % Back emf constant
+gear_ratio_az = single(1012); % Gear reduction
+
+J_az = single(I_az * (gear_ratio_az)/100);
+b_az = single(0.6 * J_az);
+K_t_az = single(K_e_az *(gear_ratio_az)); % Adjust torque constant by gear ratio
 
 % -------- Encoder Feedback Simulation ---------
 
@@ -56,191 +67,80 @@ encoder_az_conversion = (2 * pi) / encoder_az_resolution; % Convert counts to ra
 encoder_el_resolution = 2048 * 4; % Quadrature decoding (4x resolution)
 encoder_el_conversion = (2 * pi) / encoder_el_resolution; % Convert counts to radians
 
-% ---------- Initializing Control Variables -----------
+% ---------- Define State-Space Model ----------
+% Elevation State-Space
+A_el = [0, 1; 0, - ((K_t_el * K_e_el) / (J_el * R_el_motor) + (b_el / J_el))];
+B_el = [0; K_t_el / (J_el * R_el_motor)];
+C_el = [1, 0];
+D_el = 0;
 
-theta_el_actual = single(zeros(size(time)));
-omega_el_actual = single(zeros(size(time)));
-alpha_el = single(zeros(size(time)));
-torque_el_actual = single(zeros(size(time)));
-error_el = single(zeros(size(time)));
-integral_el = single(zeros(size(time)));
-derivative_el = single(zeros(size(time)));
-control_signal_el = single(zeros(size(time)));
+% Azimuth State-Space
+A_az = [0, 1; 0, - ((K_t_az * K_e_az) / (J_az * R_az_motor) + (b_az / J_az))];
+B_az = [0; K_t_az / (J_az * R_az_motor)];
+C_az = [1, 0];
+D_az = 0;
 
-theta_az_actual = single(zeros(size(time)));
-omega_az_actual = single(zeros(size(time)));
-alpha_az = single(zeros(size(time)));
-torque_az_actual = single(zeros(size(time)));
-error_az = single(zeros(size(time)));
-integral_az = single(zeros(size(time)));
-derivative_az = single(zeros(size(time)));
-control_signal_az = single(zeros(size(time)));
-
-% ---------- Control Requirements ---------------
-req.el_OS = 0.02; % OS for El
-req.el_Ts = 0.15; % Settling time for EL
-req.az_OS = 0.02; % OS for Az
-req.az_Ts = 0.15; % Settling time for Az
-
-% ---------- Damping Ratios & Natural Freqs -----------
-req.el_zeta = sqrt(log(req.el_OS)^2 / (pi^2 + log(req.el_OS)^2));
-req.az_zeta = sqrt(log(req.az_OS)^2 / (pi^2 + log(req.az_OS)^2));
-req.el_wn = 4 / (req.el_zeta * req.el_Ts);
-req.az_wn = 4 / (req.az_zeta * req.az_Ts);
-
-% ---------- Compute Real and Imaginary Parts of Poles ----------
-req.el_sigma = -req.el_wn * req.el_zeta;
-req.az_sigma = -req.az_wn * req.az_zeta;
-
-req.el_w = req.el_wn * sin(acos(req.el_zeta));
-req.az_w = req.az_wn * sin(acos(req.az_zeta));
-
-% -------- Desired Poles ----------
-req.el_s = req.el_sigma + 1i * req.el_w;
-req.az_s = req.az_sigma + 1i * req.az_w;
-
-% -------- Compute PID constants for EL and AZ --------
-el.Kp = I_el*2*abs(req.el_sigma);
-el.Ki = el.Kp/10; % Approximating
-el.Kd = el.Kp/8;  
-
-az.Kp = I_az*2* abs(req.az_sigma);
-az.Ki = az.Kp/10; % Approximating
-az.Kd = az.Kp/8;
-
-% -------- Control Loops -------
-for i = 2:length(time)
-    % Elevation Control Loop
-    
-    % Elevation Encoder quantization
-    encoder_el_counts = round(theta_el_actual(i-1) / encoder_el_conversion);
-    encoder_el_feedback = encoder_el_counts * encoder_el_conversion;
-
-    % Compute error based on encoder feedback
-    error_el(i) = theta_el_desired(i) - encoder_el_feedback;
-    derivative_el(i) = (error_el(i) - error_el(i-1)) / dt;
-    integral_el(i) = min(max(integral_el(i-1) + error_el(i) * dt, -2), 2);
-    
-    control_signal_el(i) = el.Kp * error_el(i) + el.Ki * integral_el(i) + el.Kd * derivative_el(i);
-    torque_el_actual(i) = min(max(control_signal_el(i), -K_t_el * I_el_stall), K_t_el * I_el_stall);
-    
-    % Update elevation variables
-    alpha_el(i) = torque_el_actual(i) / I_el;
-    omega_el_actual(i) = omega_el_actual(i-1) + alpha_el(i) * dt;
-    theta_el_actual(i) = theta_el_actual(i-1) + omega_el_actual(i) * dt;
-    
-    % Azimuth Control Loop
-    
-    encoder_az_counts = round(theta_az_actual(i-1) / encoder_az_conversion);
-    encoder_az_feedback = encoder_az_counts * encoder_az_conversion;
-
-    error_az(i) = theta_az_desired(i) - encoder_az_feedback;
-    derivative_az(i) = (error_az(i) - error_az(i-1)) / dt;
-    integral_az(i) = min(max(integral_az(i-1) + error_az(i) * dt, -2), 2);
-    
-    control_signal_az(i) = az.Kp * error_az(i) + az.Ki * integral_az(i) + az.Kd * derivative_az(i);
-    torque_az_actual(i) = min(max(control_signal_az(i), -K_t_az * I_az_stall), K_t_az * I_az_stall);
-   
-    alpha_az(i) = torque_az_actual(i) / I_az;
-    omega_az_actual(i) = omega_az_actual(i-1) + alpha_az(i) * dt;
-    theta_az_actual(i) = theta_az_actual(i-1) + omega_az_actual(i) * dt; 
+% Check Controllability
+if rank(ctrb(A_el, B_el)) < size(A_el,1)
+    error('Elevation system is NOT controllable');
+end
+if rank(ctrb(A_az, B_az)) < size(A_az,1)
+    error('Azimuth system is NOT controllable');
 end
 
+% Define Desired Poles
+Ts_el = 2;  % settling time
+Ts_az = 2;
 
-% -------- Elevation Model Torque Calculation for Validation -------------
+wn_el = 4 / Ts_el; 
+wn_az = 4 / Ts_az; 
 
-% Sinusoidal Angular Displacement Function Model
-EL_starting_point_rad = single(deg2rad(0));                 % Starting point [rad]
-EL_finishing_point_rad = single(deg2rad(90));               % Finishing point [rad]
-EL_total_angular_displacement_rad = EL_finishing_point_rad - EL_starting_point_rad;
+poles_el = [-wn_el, -wn_el];  
+poles_az = [-wn_az, -wn_az];  
 
-% Sinusoidal Angular Displacement
-theta_el_rad = EL_starting_point_rad + EL_total_angular_displacement_rad * 0.5 * (1 - cos(pi*time/total_time)); % in rad
-theta_el_deg = rad2deg(theta_el_rad); % in deg
+% State Feedback Gain using Ackermann's Formula
+K_el = acker(A_el, B_el, poles_el);
+K_az = acker(A_az, B_az, poles_az);
 
-% Sinusoidal Angular Velocity
-omega_el_rad = EL_total_angular_displacement_rad * 0.5 * (pi/total_time)* (sin(pi*time/total_time)); % in rad/s
-omega_el_deg = rad2deg(omega_el_rad); % in deg/s
+% Define Closed-Loop System
+A_cl_el = A_el - B_el * K_el;
+A_cl_az = A_az - B_az * K_az;
 
-% Sinusoidal Angular Acceleration
-alpha_el_rad = EL_total_angular_displacement_rad * 0.5 * (pi/total_time)^2 * (cos(pi*time/total_time)); % in rad/s^2
-alpha_el_deg = rad2deg(alpha_el_rad); % in deg/s^2
+sys_el = ss(A_cl_el, B_el, C_el, D_el);
+sys_az = ss(A_cl_az, B_az, C_az, D_az);
 
-% Net Torque from sinusoidal model
-torque_el_sin =  I_el * alpha_el_rad;
+G_ss_el = dcgain(sys_el);
+G_ss_az = dcgain(sys_az);
 
-% Gravity-Induced Moment
-torque_el_g = - L_el * g * m * cos(theta_el_rad);
+%------ Desired Setpoints -----------
+theta_el_desired = single(deg2rad(45)) * ones(size(time)); 
+theta_az_desired = single(deg2rad(90)) * ones(size(time));
 
-% Required Output Torque for the motor
-theo_torque_el_net = FOS_el * (torque_el_sin - torque_el_g);
+% Apply Step Inputs Using lsim()
+u_el = theta_el_desired / G_ss_el;
+u_az = theta_az_desired / G_ss_az;
 
-% ------------- Azimuth Model Torque Calculation for Validation ----------------
+y_el = lsim(sys_el, u_el, time) * (180/pi);  % Convert to degrees
+y_az = lsim(sys_az, u_az, time) * (180/pi); 
 
-% Sinusoidal Angular Displacement Function Model
-AZ_starting_point_rad = single(deg2rad(-180));     % Starting point [rad]
-AZ_finishing_point_rad = single(deg2rad(180));     % Finishing point [rad]
-AZ_total_angular_displacement_rad = AZ_finishing_point_rad - AZ_starting_point_rad;
+% Simulate Encoders (Quantized Output)
+y_el_quantized = round(y_el / (180/pi * encoder_el_conversion)) * (180/pi * encoder_el_conversion);  
+y_az_quantized = round(y_az / (180/pi * encoder_az_conversion)) * (180/pi * encoder_az_conversion);
 
-% Sinusoidal Angular Displacement
-theta_az_rad = AZ_starting_point_rad + AZ_total_angular_displacement_rad * 0.5 * (1 - cos(pi*time/total_time)); % in rad
-theta_az_deg = rad2deg(theta_az_rad); % in deg
+% Idk how to simulate the encoders
 
-% Sinusoidal Angular Velocity
-omega_az_rad = AZ_total_angular_displacement_rad * 0.5 * (pi/total_time)* (sin(pi*time/total_time)); % in rad/s
-omega_az_deg = rad2deg(omega_az_rad); % in deg/s
-
-% Sinusoidal Angular Acceleration
-alpha_az_rad = AZ_total_angular_displacement_rad * 0.5 * (pi/total_time)^2 * (cos(pi*time/total_time)); % in rad/s^2
-alpha_az_deg = rad2deg(alpha_az_rad); % in deg/s^2
-
-% Net Torque from sinusoidal model
-torque_az_sin =  I_az * alpha_az_rad;
-
-% Bearing Friction Induced Moment
-moment_az_bearing = -0.211;
-
-% Required Output Torque for the motor
-theo_torque_az_net = FOS_az * (torque_az_sin - moment_az_bearing);
-
-% -------- Plot Angle Results --------
+% Plot Step Response
 figure;
-plot(time, theta_el_desired, 'b', 'LineWidth', 1.5);
-hold on;
-plot(time, theta_el_actual, 'r--', 'LineWidth', 1.5);
-title('Elevation Angle Validation');
+subplot(2,1,1);
+plot(time, y_el, 'b', 'LineWidth', 1.5);
+title('Step Response - Elevation (Degrees, 45° Input)');
 xlabel('Time (s)');
-ylabel('Angle (rad)');
-legend('Desired Angle', 'Actual Angle');
+ylabel('Angle (°)');
 grid on;
 
-figure;
-plot(time, theta_az_desired, 'b', 'LineWidth', 1.5);
-hold on;
-plot(time, theta_az_actual, 'r--','LineWidth', 1.5);
-title('Azimuth Angle Validation');
+subplot(2,1,2);
+plot(time, y_az, 'b', 'LineWidth', 1.5);
+title('Step Response - Azimuth (Degrees, 90° Input)');
 xlabel('Time (s)');
-ylabel('Angle (rad)');
-legend('Desired Angle', 'Actual Angle');
-grid on;
-
-% -------- Plot Torque Results --------
-figure;
-plot(time, theo_torque_el_net, 'b', 'LineWidth', 1.5);
-hold on;
-plot(time, torque_az_actual, 'r--','LineWidth', 1.5);
-title('EL Torque Validation');
-xlabel('Time (s)');
-ylabel('Torque (Nm)');
-legend('Theoretical Torque', 'Actual Torque');
-grid on;
-
-figure;
-plot(time, theo_torque_az_net, 'b', 'LineWidth', 1.5);
-hold on;
-plot(time, torque_az_actual, 'r--', 'LineWidth', 1.5);
-title('Az Torque Validation');
-xlabel('Time (s)');
-ylabel('Torque (Nm)');
-legend('Theoretical Torque', 'Actual Torque');
+ylabel('Angle (°)');
 grid on;

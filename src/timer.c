@@ -20,52 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef ENCODER_H
-#define ENCODER_H
+#include "timer.h"
 
-#include "avr.h"
-#include "ccommons.h"
-#include "pinout.h"
-
-#define ENCODER_DIR_CCW     -1
-#define ENCODER_DIR_CW      1
-
-#define ENCODER_INC_STATE_1       0x00
-#define ENCODER_INC_STATE_2       0x02
-#define ENCODER_INC_STATE_3       0x03
-#define ENCODER_INC_STATE_4       0x01
-
-typedef struct _ENCODER_ABS
-{
-    int8 pin;
-    int8 mask;
-    int16 angle;
-    int16 pulseWidth;
-    int16 PWMin;
-    int16 loopTime;
-
-}*PENCODER_ABS, ENCODER_ABS;
-
-typedef struct _ENCODER_INC
-{
-    // Parameters
-    int8 pinA;
-    int8 maskA;
-    int8 pinB;
-    int8 maskB;
-    uint16 ppr;
-    // State Variables
-    int32 angle;
-    int8 direction;
-    uint8 state;
-}*PENCODER_INC, ENCODER_INC;
-
-int8 encoder_abs_init(PENCODER_ABS encoder_abs);
-int8 encoder_inc_init(PENCODER_INC encoder_inc);
-int8 encoder_abs_read(PENCODER_ABS encoder_abs);
-int8 encoder_inc_get_state(PENCODER_INC encoder_inc);
-int8 encoder_inc_read(PENCODER_INC encoder_inc);
-
-uint16 enc_abs_counter = 0;
-uint16 enc_tim_counter = 0;
-#endif//ENCODER_H
+int8 timer_init(void){
+    TCCR2A |= (1<WGM21);
+    OCR2A=(0x07);
+}

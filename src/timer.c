@@ -25,4 +25,5 @@
 int8 timer_init(void){
     TCCR2A |= (1<WGM21);
     OCR2A=(0x07);
+    return 0;
 }

@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 #ifndef CCOMMONS_H
-#define CCOMMONS_H 1
+#define CCOMMONS_H
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -20,10 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "ccommons.h"
-
 #ifndef YMODEM_H
 #define YMODEM_H
+
+#include "ccommons.h"
 
 #define SOH 0x01
 #define STX 0x02

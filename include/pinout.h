@@ -20,6 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#ifndef PINOUT_H
+#define PINOUT_H
+
 #include "avr.h"
 #include "ccommons.h"
 
@@ -90,3 +93,5 @@
 int8 pinout_init(void);
 int8 pinout_pin(uint8 pin, uint8 mask);
 int8 pinout_port(uint8 pin, uint8 mask, uint8 act);
+
+#endif//PINOUT_H

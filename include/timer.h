@@ -20,10 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#ifndef TIMER_H
+#define TIMER_H
+
 #include "avr.h"
 #include "ccommons.h"
 
-#ifndef TIMER_H
-#define TIMER_H
 int8 timer_init(void);
+
 #endif//TIMER_H

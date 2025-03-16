@@ -58,6 +58,8 @@ int main(void)
     // orbis.angle = 0;
 
     pinout_init();
+    timer_init();
+    motor_init();
     usart0_init(rxBuffer, RX_BUFFER_SIZE, txBuffer, TX_BUFFER_SIZE);
 
     varchar(STR64, serial);

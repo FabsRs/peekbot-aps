@@ -8,6 +8,7 @@
         "interrupt.h": "c",
         "ccommons.h": "c",
         "avr.h": "c",
-        "ymodem.h": "c"
+        "ymodem.h": "c",
+        "motor.h": "c"
     }
 }

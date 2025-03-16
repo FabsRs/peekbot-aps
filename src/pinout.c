@@ -11,10 +11,6 @@ int8 pinout_init(void)
     PORTB = 0x00;
     PORTC = 0x00;
     PORTD = 0X00;
-    OCR2B = 0;
-    TCCR2A |= (1 << COM2B1);
-    TCCR2A |= (1 << WGM21) | (1 << WGM20);
-    TCCR2B |= (1 << CS20) | (1 << CS21) | (1 << CS22);
     return 0;
 }
 

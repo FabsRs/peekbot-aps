@@ -72,7 +72,7 @@ int8 encoder_abs_calibrate(PENCODER_ABS encoder_abs)
     if(!encoder_abs)
         return -1;
     for(int i=0;i<262144||(!pinout_pin(encoder_abs->pin,encoder_abs->mask));i++);
-    TIMSK2|=1<<OCIE2A;
+    TIMSK2 |= (1<<OCIE2A);
     return 0;
 }
 

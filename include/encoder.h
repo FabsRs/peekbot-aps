@@ -60,8 +60,6 @@ typedef struct _ENCODER_INC
     uint8 state;
 }*PENCODER_INC, ENCODER_INC;
 
-int8 encoder_abs_init(PENCODER_ABS encoder_abs);
-int8 encoder_inc_init(PENCODER_INC encoder_inc);
 int8 encoder_abs_read(PENCODER_ABS encoder_abs);
 int8 encoder_abs_angle(PENCODER_ABS encoder_abs);
 int8 encoder_abs_calibrate(PENCODER_ABS encoder_abs);

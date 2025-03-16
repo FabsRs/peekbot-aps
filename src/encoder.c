@@ -31,22 +31,6 @@ ISR(TIMER2_COMPA_vect,ISR_BLOCK){
     TIMSK2|=!(enc_tim_counter%16384)<<OCIE2A;
 }
 
-int8 encoder_abs_init(PENCODER_ABS encoder_abs)
-{
-    if(!encoder_abs)
-        return -1;
-
-    return 0;
-}
-
-int8 encoder_inc_init(PENCODER_INC encoder_inc)
-{
-    if(!encoder_inc)
-        return -1;
-
-    return 0;
-}
-
 int8 encoder_abs_read(PENCODER_ABS encoder_abs)
 {
     if(!encoder_abs)

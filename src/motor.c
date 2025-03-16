@@ -22,44 +22,36 @@
 
 #include "motor.h"
 
-#define MOTOR_OC2B              0x00
-#define MOTOR_OC1A              0x01
-#define MOTOR_DIRECTION_CCW     0x01
-#define MOTOR_DIRECTION_CW      0x00
-#define MOTOR_INVERTED_ENABLED  0x00
-#define MOTOR_INVERTED_DISABLED 0x01
-
-typedef struct _MOTOR
+int8 motor_init_oc2b(void)
 {
-    // Parameters
-    uint8 timer;
-    int8 inverted;
-    uint8 pinPH;
-    uint8 maskPH;
-    // State
-    uint8 direction;
-    uint8 ocrnx;
-}*PMOTOR, MOTOR;
-
-int8 motor_init(void)
-{
-    OCR2B = 0;
     TCCR2A |= (1 << COM2B1);
     TCCR2A |= (1 << WGM21) | (1 << WGM20);
     TCCR2B |= (1 << CS20) | (1 << CS21) | (1 << CS22);
-    
-    OCR1A = 0;
-    TCCR1A |= (1 << COM1B1);
+    return 0;
+}
+
+int8 motor_init_oc1a(void)
+{
+    TCCR1A |= (1 << COM1A1);
     TCCR1A |= (1 << WGM10);
     TCCR1B |= (1 << WGM12) |(1 << CS10) | (1 << CS12);
     return 0;
 }
 
-int8 motor_set(PMOTOR motor, uint8 percentage, uint8 direction)
+int8 motor_init(void)
+{
+    motor_init_oc2b();
+    motor_init_oc1a();
+    return 0;
+}
+
+int8 motor_set(PMOTOR motor, uint16 percentage, uint8 direction)
 {
     if(!motor)
-        return;
-    motor->ocrnx = (int8)((256/100) * percentage);
+        return -1;
+    if(percentage > 100)
+        percentage = 100;
+    motor->ocrnx = (int8)((255 * percentage) / 100);
     motor->direction = direction;
     //set direction (default CCW)
     if(direction == motor->inverted)
@@ -68,16 +60,32 @@ int8 motor_set(PMOTOR motor, uint8 percentage, uint8 direction)
     }
     else
     {
-        pinout_port(motor->pinPH, motor->maskPH, PINOUT_ENABLE);
+        pinout_port(motor->pinPH, motor->maskPH, PINOUT_DISABLE);
     }
     // Set velocity
     if(motor->timer == MOTOR_OC2B)
     {
-        OCR2B = motor->ocrnx;
+        if(!motor->ocrnx)
+        {
+            TCCR2A &= !(1 << COM2B1);
+        }
+        else
+        {
+            motor_init_oc2b();
+            OCR2B = motor->ocrnx;
+        }
     }
     else if(motor->timer == MOTOR_OC1A)
     {
-        OCR1A = motor->ocrnx;
+        if(!motor->ocrnx)
+        {
+            TCCR1A &= !(1 << COM1A1);
+        }
+        else
+        {
+            motor_init_oc1a();
+            OCR1A = motor->ocrnx;
+        }
     }
     return 0;
 }

@@ -40,11 +40,11 @@
 #include <avr/string.h>
 #include <avr/util/delay.h>
 #include "ccommons.h"
+#include "encoder.h"
+#include "motor.h"
 #include "pinout.h"
 #include "timer.h"
 #include "usart0.h"
 #include "ymodem.h"
-#include "encoder.h"
-#include "motor.h"
 
 #endif//CORE_H

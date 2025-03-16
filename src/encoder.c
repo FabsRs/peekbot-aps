@@ -31,18 +31,6 @@ ISR(TIMER2_COMPA_vect,ISR_BLOCK){
     TIMSK2|=!(enc_tim_counter%16384)<<OCIE2A;
 }
 
-int8 encoder_abs_read(PENCODER_ABS encoder_abs)
-{
-    if(!encoder_abs)
-        return -1;
-    if(encoder_abs_calibrate(encoder_abs))
-        return -1;
-    for(int i=0;i<262144||(!(bit_is_set(TIMSK2,OCIE2A)));i++);
-    if(encoder_abs_angle(encoder_abs))
-        return -1;
-    return 0;
-}
-
 int8 encoder_abs_angle(PENCODER_ABS encoder_abs)
 {
     if(!encoder_abs)
@@ -55,7 +43,7 @@ int8 encoder_abs_calibrate(PENCODER_ABS encoder_abs)
 {
     if(!encoder_abs)
         return -1;
-    for(int i=0;i<262144||(!pinout_pin(encoder_abs->pin,encoder_abs->mask));i++);
+    for(int i=0;i<262144||(!pinout_pin(encoder_abs->pinPWM,encoder_abs->maskPWM));i++);
     TIMSK2 |= (1<<OCIE2A);
     return 0;
 }
@@ -66,6 +54,18 @@ int8 encoder_inc_get_state(PENCODER_INC encoder_inc)
         (pinout_pin(encoder_inc->pinA, encoder_inc->maskA) | 
         pinout_pin(encoder_inc->pinB, encoder_inc->maskB) << 1
     );    
+    return 0;
+}
+
+int8 encoder_abs_read(PENCODER_ABS encoder_abs)
+{
+    if(!encoder_abs)
+        return -1;
+    if(encoder_abs_calibrate(encoder_abs))
+        return -1;
+    for(int i=0;i<262144||(!(bit_is_set(TIMSK2,OCIE2A)));i++);
+    if(encoder_abs_angle(encoder_abs))
+        return -1;
     return 0;
 }
 

@@ -23,11 +23,33 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
+#include <util/delay.h>
 #include "avr.h"
 #include "ccommons.h"
 #include "pinout.h"
 
+#define MOTOR_OC2B              0x00
+#define MOTOR_OC1A              0x01
+#define MOTOR_DIRECTION_CCW     0x01
+#define MOTOR_DIRECTION_CW      0x00
+#define MOTOR_INVERTED_ENABLED  0x00
+#define MOTOR_INVERTED_DISABLED 0x01
+
+typedef struct _MOTOR
+{
+    // Parameters
+    uint8 timer;
+    int8 inverted;
+    uint8 pinPH;
+    uint8 maskPH;
+    // State
+    uint8 direction;
+    uint8 ocrnx;
+}*PMOTOR, MOTOR;
+
+int8 motor_init_oc2b(void);
+int8 motor_init_oc1a(void);
 int8 motor_init(void);
-int8 motor_set(PMOTOR motor, uint8 percentage, uint8 direction);
+int8 motor_set(PMOTOR motor, uint16 percentage, uint8 direction);
 
 #endif//MOTOR_H

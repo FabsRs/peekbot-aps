@@ -47,6 +47,11 @@ int8 motor_init(void)
     TCCR2A |= (1 << COM2B1);
     TCCR2A |= (1 << WGM21) | (1 << WGM20);
     TCCR2B |= (1 << CS20) | (1 << CS21) | (1 << CS22);
+    
+    OCR1A = 0;
+    TCCR1A |= (1 << COM1B1);
+    TCCR1A |= (1 << WGM10);
+    TCCR1B |= (1 << WGM12) |(1 << CS10) | (1 << CS12);
     return 0;
 }
 

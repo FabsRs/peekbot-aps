@@ -34,7 +34,7 @@ int8 analog_init()
 
 int8 analog_read(PANALOG analog)
 {
-    uint16 maxctr = 32;
+    uint16 maxctr = 1000;
     ADMUX = (ADMUX & 0xF0) | analog->mask;
     ADCSRA |= (1 << ADSC);
     while(maxctr-- && (ADCSRA & (1 << ADSC)));

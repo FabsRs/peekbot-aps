@@ -31,19 +31,25 @@
 
 #define SERIAL 1024
 
+int8 debug_print(char* serial_tx);
+
 int main(void)
 {
     uint8 rxBuffer[RX_BUFFER_SIZE];
     uint8 txBuffer[TX_BUFFER_SIZE];
-    varchar(STR64, serial);
+    varchar(STR64, serial_rx);
+    varchar(STR64, serial_tx);
+    char* token;
     ENCODER_ABS orbis;
     ENCODER_INC amt103;
     MOTOR TransmotecAZ;
     MOTOR TransmotecEL;
     ANALOG senseAZ;
     ANALOG senseEL;
-    uint32 time = 0;
+
     uint8 debug = 0;
+    uint8 direction = 0;
+    int32 angle = 0;
 
     usart0.params.mode = USART0_MODE_ASYNC_NORMAL;
     usart0.params.baudrate = USART0_BR_57600;
@@ -92,65 +98,157 @@ int main(void)
     motor_init();
     analog_init();
     usart0_init(rxBuffer, RX_BUFFER_SIZE, txBuffer, TX_BUFFER_SIZE);
+    motor_set(&TransmotecAZ, 0, MOTOR_DIRECTION_CCW);
+    motor_set(&TransmotecEL, 0, MOTOR_DIRECTION_CCW);
 
-    debug = (DEBUG_EL_MOT);
+    debug = 0;
 
     sei();
 
     while(1){
-        time++;
-        encoder_inc_read(&amt103);
-        if(time >= 1000)
+        int count = 0;
+        while(!usart0_serial_rx_count());
+        _delay_ms(500);
+        count = usart0_serial_rx_count();
+        memset(serial_rx, 0, STR64);
+        usart0_serial_rx(serial_rx, count);
+        token = strtok(serial_rx, ";");  // Get first token
+        while(token)
         {
-            if(debug & DEBUG_AMT103)
+            if(!strcmp(token, "HOME"))
             {
-                memset(serial, 0, STR64);
-                snprintf(serial, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
-                usart0_serial_tx(serial, strlen(serial));
+                motor_set(&TransmotecEL, 50, MOTOR_DIRECTION_CCW);
+                for(int i = 0 ; i < 1000 ; i ++)
+                {
+                    analog_read(&senseEL);
+                    analog_read(&senseAZ);
+                    memset(serial_tx, 0, STR64);
+                    snprintf(serial_tx, STR64, "EL Shunt\t[%d] - AZ Shunt\t[%d]\n", senseEL.value, senseAZ.value);
+                    usart0_serial_tx(serial_tx, strlen(serial_tx));
+                }
+                motor_set(&TransmotecEL, 0, MOTOR_DIRECTION_CCW);
+
+            }
+            else if(!strcmp(token, "EL"))
+            {
+                debug_print("EL Selected\n");
+                token = strtok(NULL, ";");
+                if(!strcmp(token, "CW"))
+                {
+                    direction = MOTOR_DIRECTION_CW;
+                    debug_print("CW Selected\n");
+                }
+                else if(!strcmp(token, "CCW"))
+                {
+                    direction = MOTOR_DIRECTION_CCW;
+                    debug_print("CCW Selected\n");
+                }
+                else
+                {
+                    return -1;
+                }
+                token = strtok(NULL, ";");
+                angle = atoi(token);
+                debug_print("Time set\n");
+    
+                motor_set(&TransmotecEL, 100, direction);
+                for(int i = 0; i < 1000 && amt103.angle != angle ; i++)
+                {
+                    encoder_inc_read(&amt103);
+                    _delay_ms(1);
+                    memset(serial_tx, 0, STR64);
+                    snprintf(serial_tx, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
+                    usart0_serial_tx(serial_tx, strlen(serial_tx));
+                }
+                motor_set(&TransmotecEL, 0, direction);
+            }
+            else if(!strcmp(token, "AZ"))
+            {
+                debug_print("AZ Selected\n");
+                token = strtok(NULL, ";");
+                if(!strcmp(token, "CW"))
+                {
+                    direction = MOTOR_DIRECTION_CW;
+                    debug_print("CW Selected\n");
+                }
+                else if(!strcmp(token, "CCW"))
+                {
+                    direction = MOTOR_DIRECTION_CCW;
+                    debug_print("CCW Selected\n");
+                }
+                else
+                {
+                    return -1;
+                }
+                token = strtok(NULL, ";");
+                angle = atoi(token);
+                debug_print("Time set\n");
+    
+                // motor_set(&TransmotecAZ, 100, direction);
+                // do{ 
+                //     _delay_ms(1);
+                // }while(time--);
+                // motor_set(&TransmotecAZ, 0, direction);
             }
 
-            if(debug & DEBUG_ORBIS)
-            {
-                memset(serial, 0, STR64);
-                encoder_abs_angle(&orbis);
-                usart0_serial_tx(serial, strlen(serial));
-            }
-
-            if(debug & DEBUG_EL_MOT)
-            {
-                memset(serial, 0, STR64);
-                motor_set(&TransmotecEL, 50, MOTOR_DIRECTION_CW);
-                snprintf(serial, STR64, "%s\t%d\n", (TransmotecEL.direction == MOTOR_DIRECTION_CCW) ? "CCW" : "CW", TransmotecEL.ocrnx);
-                usart0_serial_tx(serial, strlen(serial));
-            }
-
-            if(debug & DEBUG_AZ_MOT)
-            {
-                memset(serial, 0, STR64);
-                motor_set(&TransmotecAZ, 0, MOTOR_DIRECTION_CCW);
-                snprintf(serial, STR64, "%s\t%d\n", (TransmotecAZ.direction == MOTOR_DIRECTION_CCW) ? "CCW" : "CW", TransmotecAZ.ocrnx);
-                usart0_serial_tx(serial, strlen(serial));
-            }
-
-            if(debug & DEBUG_EL_SHUNT)
-            {
-                memset(serial, 0, STR64);
-                analog_read(&senseEL);
-                snprintf(serial, STR64, "value EL: %d\n", senseEL.value);
-                usart0_serial_tx(serial, strlen(serial));
-            }
-
-            if(debug & DEBUG_AZ_SHUNT)
-            {
-                memset(serial, 0, STR64);
-                analog_read(&senseAZ);
-                snprintf(serial, STR64, "value AZ: %d\n", senseAZ.value);
-                usart0_serial_tx(serial, strlen(serial));
-            }
-            time = 0;
+            token = strtok(NULL, ";");
         }
     }
 
+    // Old
+    
+    if(debug & DEBUG_AMT103)
+    {
+        memset(serial_tx, 0, STR64);
+        snprintf(serial_tx, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
+        usart0_serial_tx(serial_tx, strlen(serial_tx));
+    }
+
+    if(debug & DEBUG_ORBIS)
+    {
+        memset(serial_tx, 0, STR64);
+        encoder_abs_angle(&orbis);
+        usart0_serial_tx(serial_tx, strlen(serial_tx));
+    }
+
+    if(debug & DEBUG_EL_MOT)
+    {
+        memset(serial_tx, 0, STR64);
+        motor_set(&TransmotecEL, 50, MOTOR_DIRECTION_CW);
+        snprintf(serial_tx, STR64, "%s\t%d\n", (TransmotecEL.direction == MOTOR_DIRECTION_CCW) ? "CCW" : "CW", TransmotecEL.ocrnx);
+        usart0_serial_tx(serial_tx, strlen(serial_tx));
+    }
+
+    if(debug & DEBUG_AZ_MOT)
+    {
+        memset(serial_tx, 0, STR64);
+        motor_set(&TransmotecAZ, 0, MOTOR_DIRECTION_CCW);
+        snprintf(serial_tx, STR64, "%s\t%d\n", (TransmotecAZ.direction == MOTOR_DIRECTION_CCW) ? "CCW" : "CW", TransmotecAZ.ocrnx);
+        usart0_serial_tx(serial_tx, strlen(serial_tx));
+    }
+
+    if(debug & DEBUG_EL_SHUNT)
+    {
+        memset(serial_tx, 0, STR64);
+        analog_read(&senseEL);
+        snprintf(serial_tx, STR64, "value EL: %d\n", senseEL.value);
+        usart0_serial_tx(serial_tx, strlen(serial_tx));
+    }
+
+    if(debug & DEBUG_AZ_SHUNT)
+    {
+        memset(serial_tx, 0, STR64);
+        analog_read(&senseAZ);
+        snprintf(serial_tx, STR64, "value AZ: %d\n", senseAZ.value);
+        usart0_serial_tx(serial_tx, strlen(serial_tx));
+    }
+
+    return 0;
+}
+
+int8 debug_print(char* serial_tx)
+{
+    usart0_serial_tx(serial_tx, strlen(serial_tx));
     return 0;
 }
 

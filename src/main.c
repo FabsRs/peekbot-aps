@@ -105,7 +105,16 @@ int main(void)
 
     sei();
 
+    motor_set(&TransmotecAZ, 50, MOTOR_DIRECTION_CCW);
+    _delay_ms(5000);
+    motor_set(&TransmotecAZ, 0, MOTOR_DIRECTION_CCW);
+    motor_set(&TransmotecEL, 50, MOTOR_DIRECTION_CCW);
+    _delay_ms(5000);
+    motor_set(&TransmotecEL, 0, MOTOR_DIRECTION_CCW);
+    return 0;
+
     while(1){
+
         int count = 0;
         while(!usart0_serial_rx_count());
         _delay_ms(500);
@@ -113,6 +122,7 @@ int main(void)
         memset(serial_rx, 0, STR64);
         usart0_serial_rx(serial_rx, count);
         token = strtok(serial_rx, ";");  // Get first token
+
         while(token)
         {
             if(!strcmp(token, "HOME"))
@@ -133,23 +143,18 @@ int main(void)
             {
                 debug_print("EL Selected\n");
                 token = strtok(NULL, ";");
-                if(!strcmp(token, "CW"))
-                {
-                    direction = MOTOR_DIRECTION_CW;
-                    debug_print("CW Selected\n");
-                }
-                else if(!strcmp(token, "CCW"))
+
+                angle = atoi(token);
+                debug_print("Angle set\n");
+
+                if(amt103.angle >= angle)
                 {
                     direction = MOTOR_DIRECTION_CCW;
-                    debug_print("CCW Selected\n");
                 }
-                else
+                else if(amt103.angle < angle)
                 {
-                    return -1;
+                    direction = MOTOR_DIRECTION_CW;
                 }
-                token = strtok(NULL, ";");
-                angle = atoi(token);
-                debug_print("Time set\n");
     
                 motor_set(&TransmotecEL, 100, direction);
                 for(int i = 0; i < 1000 && amt103.angle != angle ; i++)
@@ -182,7 +187,7 @@ int main(void)
                 }
                 token = strtok(NULL, ";");
                 angle = atoi(token);
-                debug_print("Time set\n");
+                debug_print("Angle set\n");
     
                 // motor_set(&TransmotecAZ, 100, direction);
                 // do{ 
@@ -191,6 +196,7 @@ int main(void)
                 // motor_set(&TransmotecAZ, 0, direction);
             }
 
+            // Get next command
             token = strtok(NULL, ";");
         }
     }

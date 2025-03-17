@@ -50,6 +50,7 @@ int main(void)
     uint8 debug = 0;
     uint8 direction = 0;
     int32 angle = 0;
+    uint8 percentage = 0;
 
     usart0.params.mode = USART0_MODE_ASYNC_NORMAL;
     usart0.params.baudrate = USART0_BR_57600;
@@ -86,7 +87,7 @@ int main(void)
     TransmotecEL.pinPH = PINOUT_D;
     TransmotecEL.maskPH = EL_PH;
     TransmotecEL.timer = MOTOR_OC2B;
-    TransmotecEL.inverted = MOTOR_INVERTED_DISABLED;
+    TransmotecEL.inverted = MOTOR_INVERTED_ENABLED;
     TransmotecEL.direction = MOTOR_DIRECTION_CCW;
     TransmotecEL.ocrnx = 0;
 
@@ -105,13 +106,21 @@ int main(void)
 
     sei();
 
-    motor_set(&TransmotecAZ, 50, MOTOR_DIRECTION_CCW);
-    _delay_ms(5000);
-    motor_set(&TransmotecAZ, 0, MOTOR_DIRECTION_CCW);
-    motor_set(&TransmotecEL, 50, MOTOR_DIRECTION_CCW);
-    _delay_ms(5000);
-    motor_set(&TransmotecEL, 0, MOTOR_DIRECTION_CCW);
-    return 0;
+    // motor_set(&TransmotecAZ, 50, MOTOR_DIRECTION_CCW);
+    // _delay_ms(5000);
+    // motor_set(&TransmotecAZ, 0, MOTOR_DIRECTION_CCW);
+    // motor_set(&TransmotecEL, 50, MOTOR_DIRECTION_CCW);
+    // _delay_ms(5000);
+    // motor_set(&TransmotecEL, 0, MOTOR_DIRECTION_CCW);
+    // return 0;
+
+    while(1)
+    {
+        encoder_abs_read(&orbis);
+        memset(serial_tx, 0, STR64);
+        snprintf(serial_tx, STR64, "Test\n");
+        usart0_serial_tx(serial_tx, strlen(serial_tx));
+    }
 
     while(1){
 
@@ -142,8 +151,12 @@ int main(void)
             else if(!strcmp(token, "EL"))
             {
                 debug_print("EL Selected\n");
+                
                 token = strtok(NULL, ";");
-
+                percentage = atoi(token);
+                debug_print("Percentage set\n");
+                
+                token = strtok(NULL, ";");
                 angle = atoi(token);
                 debug_print("Angle set\n");
 
@@ -156,11 +169,10 @@ int main(void)
                     direction = MOTOR_DIRECTION_CW;
                 }
     
-                motor_set(&TransmotecEL, 100, direction);
-                for(int i = 0; i < 1000 && amt103.angle != angle ; i++)
+                motor_set(&TransmotecEL, percentage, direction);
+                for(int i = 0; i < 10000 && amt103.angle != angle ; i++)
                 {
                     encoder_inc_read(&amt103);
-                    _delay_ms(1);
                     memset(serial_tx, 0, STR64);
                     snprintf(serial_tx, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
                     usart0_serial_tx(serial_tx, strlen(serial_tx));
@@ -170,30 +182,34 @@ int main(void)
             else if(!strcmp(token, "AZ"))
             {
                 debug_print("AZ Selected\n");
+                
                 token = strtok(NULL, ";");
-                if(!strcmp(token, "CW"))
-                {
-                    direction = MOTOR_DIRECTION_CW;
-                    debug_print("CW Selected\n");
-                }
-                else if(!strcmp(token, "CCW"))
-                {
-                    direction = MOTOR_DIRECTION_CCW;
-                    debug_print("CCW Selected\n");
-                }
-                else
-                {
-                    return -1;
-                }
+                percentage = atoi(token);
+                debug_print("Percentage set\n");
+                
                 token = strtok(NULL, ";");
                 angle = atoi(token);
                 debug_print("Angle set\n");
+
+                if(orbis.angle >= angle)
+                {
+                    direction = MOTOR_DIRECTION_CCW;
+                }
+                else if(orbis.angle < angle)
+                {
+                    direction = MOTOR_DIRECTION_CW;
+                }
     
-                // motor_set(&TransmotecAZ, 100, direction);
-                // do{ 
-                //     _delay_ms(1);
-                // }while(time--);
-                // motor_set(&TransmotecAZ, 0, direction);
+                motor_set(&TransmotecAZ, percentage, direction);
+                // for(int i = 0; i < 10000 && orbis.angle != angle ; i++)
+                // {
+                //     // encoder_abs_read(&orbis);
+                //     memset(serial_tx, 0, STR64);
+                //     snprintf(serial_tx, STR64, "Orbis: %ld\n", orbis.angle);
+                //     usart0_serial_tx(serial_tx, strlen(serial_tx));
+                // }
+                _delay_ms(5000);
+                motor_set(&TransmotecAZ, 0, direction);
             }
 
             // Get next command

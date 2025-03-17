@@ -20,7 +20,7 @@ R_el_motor = single(Vs/I_el_stall);       % motor resistance [ohm]
 gear_ratio_el = single(200); % Gear reduction
 gear_eff_el = 0.343;
 K_e_el = single(((Vs -(I_el_no_load * R_el_motor))*gear_ratio_el)/(omega_el_no_load)); % Back emf constant [V/(rad/s)]
-J_el = single(I_el * (gear_ratio_el)/100); % motor inertia
+J_el = single(I_el+0.0000013*(gear_ratio_el^2)); % motor inertia
 b_el = single(0.6 * J_el); % damping coeff
 K_t_el = single(K_e_el * gear_eff_el);
  
@@ -31,11 +31,11 @@ I_az_no_load = single(0.06);  % No load current [A]
 omega_az_no_load = single(4900*2*pi/60);   % in rad/s
 R_az_motor = single(Vs/I_az_stall); % [ohm] Resistance for Az motor
 % ring_gear_ratio = single(3.75);
-gear_ratio_az = single(1012); % Gear reduction
+gear_ratio_az = single(1012*3.75); % Gear reduction
 gear_eff_az = single(0.108);
 
 K_e_az = single(((Vs - (I_az_no_load * R_az_motor))*gear_ratio_az)/(omega_az_no_load)); % Back emf constant
-J_az = single(I_az * (gear_ratio_az)/10);
+J_az = single(I_az+0.0000013*(gear_ratio_az^2));
 b_az = single(0.6 * J_az);
 K_t_az = single(K_e_az * gear_eff_az); 
 
@@ -77,7 +77,7 @@ K_az = Acker_Ctrl(A_az, B_az, poles_az);
 
 % Observer Design
 obsv_poles_el = single(5*poles_el); 
-obsv_poles_az = single(10*poles_az);
+obsv_poles_az = single(20*poles_az);
 
 % Observer Gains
 L_el = Acker_Obsv(A_el, C_el, obsv_poles_el); 
@@ -105,7 +105,7 @@ x_hat_az(2, :) = min(max(x_hat_az(2, :), -omega_max_az), omega_max_az);
 dt = time(2) - time(1);
 accel_el = [diff(x_hat_el(2, :)) ./ dt, x_hat_el(2, end)]; 
 accel_az = [diff(x_hat_az(2, :)) ./ dt, x_hat_az(2, end)];
-y_el
+
 tau_g_el = m_ant * g * L_cg * cos(y_el);  % Gravity torque for Elevation
 tau_f_az = 0.211;  % constant bearing friction-induced moment (N·m)
 

@@ -1,13 +1,13 @@
 clc; clear; close all;
 
 % ------------ Time --------------------
-total_time = 60;        % Time Interval [s]
-dt = 0.1;               % Time step [s]
+total_time = 75;        % Time Interval [s]
+dt = 0.01;               % Time step [s]
 time = 0:dt:total_time; % Time vector [s]
 
 %------ Desired Setpoints (in degrees)-----------
-theta_el_desired = deg2rad(10) * ones(size(time)); 
-theta_az_desired = deg2rad(20) * ones(size(time));
+theta_el_desired = deg2rad(90) * ones(size(time)); 
+theta_az_desired = deg2rad(360) * ones(size(time));
 
 % % Convert Degrees to Encoder Positions
 % pos_el_desired = round((theta_el_desired / 90) * 512);  % Scaling 90 deg -> 512 positions

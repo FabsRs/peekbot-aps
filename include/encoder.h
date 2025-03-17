@@ -43,7 +43,7 @@ typedef struct _ENCODER_ABS
     int8 pinSTA;
     int8 maskSTA;
     // State Variables
-    int16 angle;
+    int32 angle;
 
 }*PENCODER_ABS, ENCODER_ABS;
 

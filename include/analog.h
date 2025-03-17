@@ -20,32 +20,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef CORE_H
-#define CORE_H
+#ifndef ANALOG_H
+#define ANALOG_H
 
-#define F_CPU 16000000UL
-
-#define YMODEM_HEADER_SIZE  64
-#define YMODEM_CRC_SIZE     48
-#define CCSDS_HEADER_SIZE   64
-#define PAYLOAD_SIZE        1024
-#define RX_BUFFER_SIZE      512
-#define TX_BUFFER_SIZE      512
-
-#include <avr/avr/interrupt.h>
-#include <avr/stdio.h>
-#include <avr/stdint.h>
-#include <avr/stdlib.h>
-#include <avr/unistd.h>
-#include <avr/string.h>
-#include <avr/util/delay.h>
-#include "analog.h"
+#include "avr.h"
 #include "ccommons.h"
-#include "encoder.h"
-#include "motor.h"
-#include "pinout.h"
-#include "timer.h"
-#include "usart0.h"
-#include "ymodem.h"
 
-#endif//CORE_H
+typedef struct _ANALOG
+{
+    // Parameter
+    uint8 mask;
+    // State Parameters
+    uint16 value;
+}*PANALOG, ANALOG;
+
+int8 analog_init();
+int8 analog_read(PANALOG analog);
+
+#endif//ANALOG_H

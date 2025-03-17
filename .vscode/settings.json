@@ -9,6 +9,7 @@
         "ccommons.h": "c",
         "avr.h": "c",
         "ymodem.h": "c",
-        "motor.h": "c"
+        "motor.h": "c",
+        "analog.h": "c"
     }
 }

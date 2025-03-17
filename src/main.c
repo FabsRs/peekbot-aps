@@ -40,6 +40,8 @@ int main(void)
     ENCODER_INC amt103;
     MOTOR TransmotecAZ;
     MOTOR TransmotecEL;
+    ANALOG senseAZ;
+    ANALOG senseEL;
     uint32 time = 0;
     uint8 debug = 0;
 
@@ -82,15 +84,16 @@ int main(void)
     TransmotecEL.direction = MOTOR_DIRECTION_CCW;
     TransmotecEL.ocrnx = 0;
 
+    senseAZ.mask = AZ_SHUNT_UB;
+    senseEL.mask = EL_SHUNT_UB;
+
     pinout_init();
     timer_init();
     motor_init();
+    analog_init();
     usart0_init(rxBuffer, RX_BUFFER_SIZE, txBuffer, TX_BUFFER_SIZE);
 
-    debug = (DEBUG_EL_MOT | DEBUG_AZ_MOT);
-
-    uint8 speed = 0;
-    uint8 direction = 0;
+    debug = (DEBUG_EL_MOT);
 
     sei();
 
@@ -115,34 +118,16 @@ int main(void)
 
             if(debug & DEBUG_EL_MOT)
             {
-                speed++;
-                if(speed > 100)
-                {
-                    if(direction == MOTOR_DIRECTION_CCW)
-                        direction = MOTOR_DIRECTION_CW;
-                    else if(direction == MOTOR_DIRECTION_CW)
-                        direction = MOTOR_DIRECTION_CCW;
-                    speed = 0;
-                }
                 memset(serial, 0, STR64);
-                motor_set(&TransmotecEL, speed, direction);
+                motor_set(&TransmotecEL, 50, MOTOR_DIRECTION_CW);
                 snprintf(serial, STR64, "%s\t%d\n", (TransmotecEL.direction == MOTOR_DIRECTION_CCW) ? "CCW" : "CW", TransmotecEL.ocrnx);
                 usart0_serial_tx(serial, strlen(serial));
             }
 
             if(debug & DEBUG_AZ_MOT)
             {
-                speed++;
-                if(speed > 100)
-                {
-                    if(direction == MOTOR_DIRECTION_CCW)
-                        direction = MOTOR_DIRECTION_CW;
-                    else if(direction == MOTOR_DIRECTION_CW)
-                        direction = MOTOR_DIRECTION_CCW;
-                    speed = 0;
-                }
                 memset(serial, 0, STR64);
-                motor_set(&TransmotecAZ, speed, direction);
+                motor_set(&TransmotecAZ, 0, MOTOR_DIRECTION_CCW);
                 snprintf(serial, STR64, "%s\t%d\n", (TransmotecAZ.direction == MOTOR_DIRECTION_CCW) ? "CCW" : "CW", TransmotecAZ.ocrnx);
                 usart0_serial_tx(serial, strlen(serial));
             }
@@ -150,18 +135,20 @@ int main(void)
             if(debug & DEBUG_EL_SHUNT)
             {
                 memset(serial, 0, STR64);
+                analog_read(&senseEL);
+                snprintf(serial, STR64, "value EL: %d\n", senseEL.value);
                 usart0_serial_tx(serial, strlen(serial));
             }
 
             if(debug & DEBUG_AZ_SHUNT)
             {
                 memset(serial, 0, STR64);
+                analog_read(&senseAZ);
+                snprintf(serial, STR64, "value AZ: %d\n", senseAZ.value);
                 usart0_serial_tx(serial, strlen(serial));
             }
-            
             time = 0;
         }
-
     }
 
     return 0;

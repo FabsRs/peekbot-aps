@@ -18,7 +18,7 @@ $OBJ = '.\obj\'
 $SRC = '.\src\'
 
 # Files
-$OBJECTS = @('encoder.o';'main.o';'motor.o';'pinout.o';'timer.o';'usart0.o';'ymodem.o')
+$OBJECTS = @('analog.o';'encoder.o';'main.o';'motor.o';'pinout.o';'timer.o';'usart0.o';'ymodem.o')
 $HEX = 'peekbot-aps.hex'
 $ELF = 'peekbot-aps.elf'
 $BOOTLOADER = 'bootloader\Arduino_UNO_bootloader.hex'
@@ -45,6 +45,7 @@ $P_OBJECTS = $OBJECTS | ForEach-Object { "$OBJ$_" }
 
 # Build
 
+&$CC $IFLAGS -c $CFLAGS $DEF $SRC'analog.c' -o $OBJ'analog.o'
 &$CC $IFLAGS -c $CFLAGS $DEF $SRC'encoder.c' -o $OBJ'encoder.o'
 &$CC $IFLAGS -c $CFLAGS $DEF $SRC'main.c' -o $OBJ'main.o'
 &$CC $IFLAGS -c $CFLAGS $DEF $SRC'motor.c' -o $OBJ'motor.o'

@@ -25,8 +25,54 @@
 
 uint16 enc_abs_counter = 0;
 uint16 enc_tim_counter = 0;
+
 varchar(STR64, serial_tx);
 
+int8 az_preverr(PENCODER_ABS encoder_abs)
+{
+    encoder_abs->az_preverr=encoder_abs->az_err; //Set previous loop's error value to new "previous erro" value 
+}
+int8 az_err(PENCODER_ABS encoder_abs)
+{
+    encoder_abs->az_err=encoder_abs->az_tar-encoder_abs->az_pos; //Deviation from set target in encoder positions (integer)
+}
+int8 az_errcnt(PENCODER_ABS encoder_abs) //Assuming 2048PPR absolute, change thresholds for higher PPR
+{
+    if((abs(encoder_abs->az_err)>int8 1)&&(abs(encoder_abs->az_err-encoder_abs->az_preverr)<32)) //use loop count instead of time to ignore loop time variance and keep integers
+    {
+        encoder_abs->az_errcnt++;
+    }
+} 
+int8 az_interr(PENCODER_ABS encoder_abs) //the longer the error remains out of bounds the higher the integral response
+{
+    az_errcnt(encoder_abs);
+    encoder_abs->az_interr+=encoder_abs->az_err*encoder_abs->az_errcnt;
+}
+int8 az_dererr(PENCODER_ABS encoder_abs) //numerical derivative of error, causes damping. 
+{
+    encoder_abs->az_dererr=(encoder_abs->az_err-encoder_abs->az_preverr) //Derivative period is 1 loop count.
+}
+
+int8 el_preverr(PENCODER_INC encoder_inc)
+{
+    encoder_inc->el_preverr=encoder_inc->el_err; //Set previous loop's error value to new "previous erro" value 
+}
+int8 el_errcnt(PENCODER_INC encoder_inc) //Assuming 2048PPR, change thresholds for higher PPR
+{
+    if((abs(encoder_inc->el_err)>int8 1)&&(abs(encoder_inc->el_err-encoder_inc->el_preverr)<32)) //use loop count instead of time to ignore loop time variance and keep integers
+    {
+        encoder_inc->el_errcnt++;
+    }
+} 
+int8 el_interr(PENCODER_INC encoder_inc)
+{
+    el_errcnt(encoder_inc);
+    encoder_inc->el_interr+=encoder_inc->el_err*encoder_inc->el_errcnt;
+}
+int8 el_dererr(PENCODER_INC encoder_inc)
+{
+    encoder_inc->el_dererr=(encoder_inc->el_err-encoder_inc->el_preverr) //Derivative period is 1 loop count.
+}
 ISR(TIMER0_COMPA_vect,ISR_BLOCK){ 
     enc_tim_counter++;
     enc_abs_counter += bit_is_set(PINB, AZ_ENC_PWM);
@@ -35,6 +81,8 @@ ISR(TIMER0_COMPA_vect,ISR_BLOCK){
     TCCR0A |= (1 << WGM01);     // Set to CTC OCRA immediate stop at MAX
     pinout_port(PINOUT_B, DEBUG_LED, PINOUT_ENABLE);
 }
+
+
 
 int8 encoder_abs_angle(PENCODER_ABS encoder_abs)
 {

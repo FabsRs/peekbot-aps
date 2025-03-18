@@ -35,7 +35,8 @@
 #define ENCODER_INC_STATE_3       0x03
 #define ENCODER_INC_STATE_4       0x01
 
-#define PW_STEPS    2048
+#define PW_STEPS    1024
+#define SAMPLING    10
 
 typedef struct _ENCODER_ABS
 {
@@ -45,7 +46,7 @@ typedef struct _ENCODER_ABS
     int8 pinSTA;
     int8 maskSTA;
     // State Variables
-    int32 angle;
+    uint32 angle;
 
 }*PENCODER_ABS, ENCODER_ABS;
 

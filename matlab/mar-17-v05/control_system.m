@@ -53,8 +53,8 @@ C_az = [1, 0];
 D_az = 0;
  
 % Check Controllability
-Ctrb_el = [0, 0.3116; 0.3116, -0.5275]; % [B_el, A_el*B_el];
-Ctrl_az = [0, 0.0614; 0.0614, -0.3577]; %[B_az, A_az*B_az];
+% Ctrb_el = [0, 0.3116; 0.3116, -0.5275]; % [B_el, A_el*B_el];
+% Ctrl_az = [0, 0.0614; 0.0614, -0.3577]; %[B_az, A_az*B_az];
 
 % Probably don't need this anymore
 % if rank(Ctrb_el) < size(A_el,1)

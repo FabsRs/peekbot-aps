@@ -24,8 +24,7 @@
 
 int8 timer_init(void){
     TCCR0A |= (1 << WGM01);     // Set to CTC OCRA immediate stop at MAX
-    // TCCR0B |= (1 << CS00);
-    OCR0A = (0x0F);             // Set Timer output to 2MHz
+    OCR0A = (0x1F);             // Set Timer output to 2MHz
     TCNT0 = 0x00;
     return 0;
 }

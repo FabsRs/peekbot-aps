@@ -46,7 +46,10 @@ typedef struct _ENCODER_ABS
     int8 maskSTA;
     // State Variables
     int32 angle;
-
+    int8 az_pos;
+    int8 az_prevpos;
+    int8 az_derpos;
+    int8 az_intpos;
 }*PENCODER_ABS, ENCODER_ABS;
 
 typedef struct _ENCODER_INC
@@ -61,6 +64,10 @@ typedef struct _ENCODER_INC
     int32 angle;
     int8 direction;
     uint8 state;
+    int8 el_pos;
+    int8 el_prevpos;
+    int8 el_derpos;
+    int8 el_intpos;   
 }*PENCODER_INC, ENCODER_INC;
 
 int8 encoder_abs_angle(PENCODER_ABS encoder_abs);
@@ -68,5 +75,10 @@ int8 encoder_abs_calibrate(PENCODER_ABS encoder_abs);
 int8 encoder_inc_get_state(PENCODER_INC encoder_inc);
 int8 encoder_abs_read(PENCODER_ABS encoder_abs);
 int8 encoder_inc_read(PENCODER_INC encoder_inc);
-
+int8 az_intpos(PENCODER_ABS encoder_abs);
+int8 az_derpos(PENCODER_ABS encoder_abs);
+int8 az_prevpos(PENCODER_ABS encoder_abs);
+int8 el_intpos(PENCODER_ABS encoder_abs);
+int8 el_derpos(PENCODER_ABS encoder_abs);
+int8 el_prevpos(PENCODER_ABS encoder_abs);
 #endif//ENCODER_H

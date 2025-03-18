@@ -35,6 +35,8 @@
 #define ENCODER_INC_STATE_3       0x03
 #define ENCODER_INC_STATE_4       0x01
 
+#define X2PW_TICKS  262144 
+
 typedef struct _ENCODER_ABS
 {
     // Parameters

@@ -115,7 +115,6 @@ int main(void)
     // return 0;
     while(1){
         encoder_abs_read(&orbis);
-        _delay_ms(1000);
         memset(serial_tx, 0, STR64);
         snprintf(serial_tx, STR64, "Orbis angle [%ld]\n", orbis.angle);
         usart0_serial_tx(serial_tx, strlen(serial_tx));

@@ -36,6 +36,7 @@
 #define ENCODER_INC_STATE_4       0x01
 
 #define X2PW_TICKS  262144 
+#define PW_STEPS    16383
 
 typedef struct _ENCODER_ABS
 {

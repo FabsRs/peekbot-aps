@@ -23,29 +23,25 @@
 #include "encoder.h"
 #include "usart0.h"
 
-uint16 enc_abs_counter = 0;
-uint16 enc_tim_counter = 0;
+uint32 actr = 0;
+uint32 tctr = 0;
 varchar(STR64, serial_tx);
 
-ISR(TIMER0_COMPA_vect,ISR_BLOCK){ 
-    enc_tim_counter++;
-    enc_abs_counter += bit_is_set(PINB, AZ_ENC_PWM);
-    TIMSK0 |= !(enc_tim_counter%16384) << OCIE0A;
-    OCR0A = (0x03);             // Set Timer output to 2MHz
-    TCCR0A |= (1 << WGM01);     // Set to CTC OCRA immediate stop at MAX
-    pinout_port(PINOUT_B, DEBUG_LED, PINOUT_ENABLE);
+ISR(TIMER0_COMPA_vect,ISR_BLOCK){
+    tctr++;
+    actr += bit_is_set(PINB, AZ_ENC_PWM);
+    if(tctr >= PW_STEPS)
+    {
+        TCCR0B &= !(1 << CS00);
+        TIMSK0 &= !(1 << OCIE0A);
+    }
 }
 
 int8 encoder_abs_angle(PENCODER_ABS encoder_abs)
 {
     if(!encoder_abs)
         return -1;
-    encoder_abs->angle=(enc_abs_counter>>2)-1;
-    memset(serial_tx, 0, STR64);
-    snprintf(serial_tx, STR64, "Angle[%d]\n", enc_abs_counter);
-    usart0_serial_tx(serial_tx, strlen(serial_tx));
-    enc_tim_counter = 0;
-    enc_abs_counter = 0;
+    encoder_abs->angle=(actr>>2)-1;
     return 0;
 }
 
@@ -53,10 +49,11 @@ int8 encoder_abs_calibrate(PENCODER_ABS encoder_abs)
 {
     if(!encoder_abs)
         return -1;
-    for(int i = 0 ; i < X2PW_TICKS/16 && (!pinout_pin(encoder_abs->pinPWM,encoder_abs->maskPWM)) ; i++);
-    TIMSK0 |= (1<<OCIE0A);
-    OCR0A = (0x03);             // Set Timer output to 2MHz
-    TCCR0A |= (1 << WGM01);     // Set to CTC OCRA immediate stop at MAX
+    tctr = 0;
+    actr = 0;
+    for(uint32 i = 0 ; i < X2PW_TICKS/16 && (!pinout_pin(encoder_abs->pinPWM,encoder_abs->maskPWM)) ; i++);
+    TIMSK0 |= (1 << OCIE0A);
+    TCCR0B |= (1 << CS00);
     return 0;
 }
 
@@ -75,7 +72,8 @@ int8 encoder_abs_read(PENCODER_ABS encoder_abs)
         return -1;
     if(encoder_abs_calibrate(encoder_abs))
         return -1;
-    for(int i = 0 ; i < X2PW_TICKS/16 && bit_is_set(TIMSK0,OCIE0A) ; i++);
+    for(uint32 i = 0 ; i < X2PW_TICKS && bit_is_set(TIMSK0,OCIE0A) ; i++);
+    pinout_port(PINOUT_B, DEBUG_LED, PINOUT_ENABLE);
     if(encoder_abs_angle(encoder_abs))
         return -1;
     return 0;

@@ -32,28 +32,8 @@ ISR(TIMER0_COMPA_vect,ISR_BLOCK){
     actr += pinout_pin(PINOUT_B, AZ_ENC_PWM);
     if(tctr >= PW_STEPS)
     {
-        TCCR0B &= !(1 << CS00);
+        TIMSK0 &= !(1 << OCIE0A);
     }
-}
-
-int8 encoder_abs_angle(PENCODER_ABS encoder_abs)
-{
-    if(!encoder_abs)
-        return -1;
-    encoder_abs->angle=(actr >> 3)-1;
-    return 0;
-}
-
-int8 encoder_abs_calibrate(PENCODER_ABS encoder_abs)
-{
-    if(!encoder_abs)
-        return -1;
-    tctr = 0;
-    actr = 0;
-    for(uint32 i = 0 ; i < X2PW_TICKS/16 && (!pinout_pin(encoder_abs->pinPWM,encoder_abs->maskPWM)) ; i++);
-    TCNT0 = 0x00;
-    TCCR0B |= (1 << CS00);
-    return 0;
 }
 
 int8 encoder_inc_get_state(PENCODER_INC encoder_inc)
@@ -69,12 +49,11 @@ int8 encoder_abs_read(PENCODER_ABS encoder_abs)
 {
     if(!encoder_abs)
         return -1;
-    if(encoder_abs_calibrate(encoder_abs))
-        return -1;
-    for(uint32 i = 0 ; i < X2PW_TICKS && bit_is_set(TIMSK0,OCIE0A) ; i++);
-    pinout_port(PINOUT_B, DEBUG_LED, PINOUT_ENABLE);
-    if(encoder_abs_angle(encoder_abs))
-        return -1;
+    tctr = 0;
+    actr = 0;
+    TIMSK0 |= (1 << OCIE0A);
+    while(bit_is_set(TIMSK0,OCIE0A));
+    encoder_abs->angle=(actr >> 3)-1;
     return 0;
 }
 

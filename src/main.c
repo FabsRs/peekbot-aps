@@ -51,6 +51,11 @@ int main(void)
     uint8 direction = 0;
     int32 angle = 0;
     uint8 percentage = 0;
+    
+    pinout_init();
+    timer_init();
+    motor_init();
+    analog_init();
 
     usart0.params.mode = USART0_MODE_ASYNC_NORMAL;
     usart0.params.baudrate = USART0_BR_57600;
@@ -76,7 +81,7 @@ int main(void)
     orbis.pinSTA = PINOUT_B;
     orbis.maskSTA = AZ_ENC_STA;
     orbis.angle = 0;
-    encoder_abs_read(&orbis);
+    // encoder_abs_read(&orbis);
 
     TransmotecAZ.pinPH = PINOUT_B;
     TransmotecAZ.maskPH = AZ_PH;
@@ -95,10 +100,6 @@ int main(void)
     senseAZ.mask = AZ_SHUNT_UB;
     senseEL.mask = EL_SHUNT_UB;
 
-    pinout_init();
-    timer_init();
-    motor_init();
-    analog_init();
     usart0_init(rxBuffer, RX_BUFFER_SIZE, txBuffer, TX_BUFFER_SIZE);
     motor_set(&TransmotecAZ, 0, MOTOR_DIRECTION_CCW);
     motor_set(&TransmotecEL, 0, MOTOR_DIRECTION_CCW);
@@ -107,14 +108,14 @@ int main(void)
 
     sei();
 
-    // while(1){
-    //     encoder_abs_read(&orbis);
-    //     memset(serial_tx, 0, STR64);
-    //     snprintf(serial_tx, STR64, "Orbis angle [%ld]\n", orbis.angle);
-    //     usart0_serial_tx(serial_tx, strlen(serial_tx));
-    // }
+    while(1){
+        encoder_abs_read(&orbis);
+        memset(serial_tx, 0, STR64);
+        snprintf(serial_tx, STR64, "Orbis[%ld]\n", orbis.angle);
+        usart0_serial_tx(serial_tx, strlen(serial_tx));
+    }
 
-    // return 0;
+    return 0;
 
     while(1){
 
@@ -222,7 +223,7 @@ int main(void)
     if(debug & DEBUG_ORBIS)
     {
         memset(serial_tx, 0, STR64);
-        encoder_abs_angle(&orbis);
+        // encoder_abs_angle(&orbis);
         usart0_serial_tx(serial_tx, strlen(serial_tx));
     }
 

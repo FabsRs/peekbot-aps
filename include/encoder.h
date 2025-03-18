@@ -35,7 +35,7 @@
 #define ENCODER_INC_STATE_3       0x03
 #define ENCODER_INC_STATE_4       0x01
 
-#define X2PW_TICKS  262144 
+// #define X2PW_TICKS  1000 
 #define PW_STEPS    8192
 
 typedef struct _ENCODER_ABS
@@ -64,8 +64,6 @@ typedef struct _ENCODER_INC
     uint8 state;
 }*PENCODER_INC, ENCODER_INC;
 
-int8 encoder_abs_angle(PENCODER_ABS encoder_abs);
-int8 encoder_abs_calibrate(PENCODER_ABS encoder_abs);
 int8 encoder_inc_get_state(PENCODER_INC encoder_inc);
 int8 encoder_abs_read(PENCODER_ABS encoder_abs);
 int8 encoder_inc_read(PENCODER_INC encoder_inc);

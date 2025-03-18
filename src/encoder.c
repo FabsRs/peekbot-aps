@@ -30,49 +30,82 @@ varchar(STR64, serial_tx);
 
 int8 az_preverr(PENCODER_ABS encoder_abs)
 {
-    encoder_abs->az_preverr=encoder_abs->az_err; //Set previous loop's error value to new "previous erro" value 
+    encoder_abs->az_preverr=encoder_abs->az_err; //Set previous loop's error value to new "previous error" value 
+    return 0;
 }
+
 int8 az_err(PENCODER_ABS encoder_abs)
 {
     encoder_abs->az_err=encoder_abs->az_tar-encoder_abs->az_pos; //Deviation from set target in encoder positions (integer)
+    return 0;
 }
+
 int8 az_errcnt(PENCODER_ABS encoder_abs) //Assuming 2048PPR absolute, change thresholds for higher PPR
 {
     if((abs(encoder_abs->az_err)>int8 1)&&(abs(encoder_abs->az_err-encoder_abs->az_preverr)<32)) //use loop count instead of time to ignore loop time variance and keep integers
     {
         encoder_abs->az_errcnt++;
     }
+    return 0;
 } 
+
 int8 az_interr(PENCODER_ABS encoder_abs) //the longer the error remains out of bounds the higher the integral response
 {
     az_errcnt(encoder_abs);
     encoder_abs->az_interr+=encoder_abs->az_err*encoder_abs->az_errcnt;
+    return 0;
 }
+
 int8 az_dererr(PENCODER_ABS encoder_abs) //numerical derivative of error, causes damping. 
 {
     encoder_abs->az_dererr=(encoder_abs->az_err-encoder_abs->az_preverr) //Derivative period is 1 loop count.
+    return 0;
 }
 
 int8 el_preverr(PENCODER_INC encoder_inc)
 {
     encoder_inc->el_preverr=encoder_inc->el_err; //Set previous loop's error value to new "previous erro" value 
+    return 0;
 }
+
 int8 el_errcnt(PENCODER_INC encoder_inc) //Assuming 2048PPR, change thresholds for higher PPR
 {
     if((abs(encoder_inc->el_err)>int8 1)&&(abs(encoder_inc->el_err-encoder_inc->el_preverr)<32)) //use loop count instead of time to ignore loop time variance and keep integers
     {
         encoder_inc->el_errcnt++;
     }
+    return 0;
 } 
+
 int8 el_interr(PENCODER_INC encoder_inc)
 {
     el_errcnt(encoder_inc);
     encoder_inc->el_interr+=encoder_inc->el_err*encoder_inc->el_errcnt;
+    return 0;
 }
+
 int8 el_dererr(PENCODER_INC encoder_inc)
 {
     encoder_inc->el_dererr=(encoder_inc->el_err-encoder_inc->el_preverr) //Derivative period is 1 loop count.
+    return 0;
 }
+
+int8 az_resp(PENCODER_ABS encoder_abs)
+{
+    az_preverr(encoder_abs);
+    az_dererr(encoder_abs);
+    az_interr(encoder_abs);
+    return 0;
+}
+
+int8 el_resp(PENCODER_ABS encoder_abs)
+{
+    el_preverr(encoder_inc);
+    el_dererr(encoder_inc);
+    el_interr(encoder_inc);
+    return 0;
+}
+
 ISR(TIMER0_COMPA_vect,ISR_BLOCK){ 
     enc_tim_counter++;
     enc_abs_counter += bit_is_set(PINB, AZ_ENC_PWM);

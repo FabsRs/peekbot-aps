@@ -76,6 +76,7 @@ int main(void)
     orbis.pinSTA = PINOUT_B;
     orbis.maskSTA = AZ_ENC_STA;
     orbis.angle = 0;
+    encoder_abs_read(&orbis);
 
     TransmotecAZ.pinPH = PINOUT_B;
     TransmotecAZ.maskPH = AZ_PH;
@@ -106,22 +107,14 @@ int main(void)
 
     sei();
 
-    // motor_set(&TransmotecAZ, 50, MOTOR_DIRECTION_CCW);
-    // _delay_ms(5000);
-    // motor_set(&TransmotecAZ, 0, MOTOR_DIRECTION_CCW);
-    // motor_set(&TransmotecEL, 50, MOTOR_DIRECTION_CCW);
-    // _delay_ms(5000);
-    // motor_set(&TransmotecEL, 0, MOTOR_DIRECTION_CCW);
-    // return 0;
-    while(1){
-        encoder_abs_read(&orbis);
-        _delay_ms(1000);
-        memset(serial_tx, 0, STR64);
-        snprintf(serial_tx, STR64, "Orbis angle [%ld]\n", orbis.angle);
-        usart0_serial_tx(serial_tx, strlen(serial_tx));
-    }
+    // while(1){
+    //     encoder_abs_read(&orbis);
+    //     memset(serial_tx, 0, STR64);
+    //     snprintf(serial_tx, STR64, "Orbis angle [%ld]\n", orbis.angle);
+    //     usart0_serial_tx(serial_tx, strlen(serial_tx));
+    // }
 
-    return 0;
+    // return 0;
 
     while(1){
 
@@ -202,14 +195,13 @@ int main(void)
                 }
     
                 motor_set(&TransmotecAZ, percentage, direction);
-                // for(int i = 0; i < 10000 && orbis.angle != angle ; i++)
-                // {
-                //     // encoder_abs_read(&orbis);
-                //     memset(serial_tx, 0, STR64);
-                //     snprintf(serial_tx, STR64, "Orbis: %ld\n", orbis.angle);
-                //     usart0_serial_tx(serial_tx, strlen(serial_tx));
-                // }
-                _delay_ms(5000);
+                for(int i = 0; i < 10000 && orbis.angle != angle ; i++)
+                {
+                    encoder_abs_read(&orbis);
+                    memset(serial_tx, 0, STR64);
+                    snprintf(serial_tx, STR64, "Orbis: %ld\n", orbis.angle);
+                    usart0_serial_tx(serial_tx, strlen(serial_tx));
+                }
                 motor_set(&TransmotecAZ, 0, direction);
             }
 

@@ -29,7 +29,7 @@ varchar(STR64, serial_tx);
 
 ISR(TIMER0_COMPA_vect,ISR_BLOCK){
     tctr++;
-    actr += bit_is_set(PINB, AZ_ENC_PWM);
+    actr += pinout_pin(PINOUT_B, AZ_ENC_PWM);
     if(tctr >= PW_STEPS)
     {
         TCCR0B &= !(1 << CS00);
@@ -41,7 +41,7 @@ int8 encoder_abs_angle(PENCODER_ABS encoder_abs)
 {
     if(!encoder_abs)
         return -1;
-    encoder_abs->angle=(actr>>2)-1;
+    encoder_abs->angle=(actr >> 3)-1;
     return 0;
 }
 

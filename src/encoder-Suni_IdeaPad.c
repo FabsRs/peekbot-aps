@@ -23,14 +23,17 @@
 #include "encoder.h"
 #include "usart0.h"
 
-uint16 actr = 0;
-uint16 tctr = 0;
+uint32 actr = 0;
+uint32 tctr = 0;
 varchar(STR64, serial_tx);
 
 ISR(TIMER0_COMPA_vect,ISR_BLOCK){
     tctr++;
-    actr += bit_is_set(PINB, AZ_ENC_PWM);
-    TIMSK0 &= ((!(1 << OCIE0A)) | ((tctr < PW_STEPS) << OCIE0A));
+    actr += pinout_pin(PINOUT_B, AZ_ENC_PWM);
+    if(tctr >= PW_STEPS)
+    {
+        TIMSK0 &= !(1 << OCIE0A);
+    }
 }
 
 int8 encoder_inc_get_state(PENCODER_INC encoder_inc)
@@ -49,10 +52,8 @@ int8 encoder_abs_read(PENCODER_ABS encoder_abs)
     tctr = 0;
     actr = 0;
     TIMSK0 |= (1 << OCIE0A);
-    TCCR0B |= (1 << CS00);
     while(bit_is_set(TIMSK0,OCIE0A));
-    TCCR0B &= !(1 << CS00);
-    encoder_abs->angle=(actr >> AZ_ENC_PWM)-1;
+    encoder_abs->angle=(actr >> 3)-1;
     return 0;
 }
 

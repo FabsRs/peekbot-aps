@@ -41,51 +41,53 @@ K_t_az = single(K_e_az * gear_eff_az);
 
 % ---------- State-Space Model ----------
 % Elevation State-Space
-A_el = [0, 1; 0, - ((K_t_el * K_e_el) / (J_el * R_el_motor) + (b_el / J_el))];
-B_el = [0; K_t_el / (J_el * R_el_motor)];
+A_el = [0, 1.0000; 0   -1.6930]; % [0, 1; 0, - ((K_t_el * K_e_el) / (J_el * R_el_motor) + (b_el / J_el))];
+B_el = [0; 0.3116]; %[0; K_t_el / (J_el * R_el_motor)];
 C_el = [1, 0];
 D_el = 0;
 
 % Azimuth State-Space
-A_az = [0, 1; 0, - (((K_t_az * K_e_az) / (J_az * R_az_motor)) + (b_az / J_az))];
-B_az = [0; K_t_az / (J_az * R_az_motor)];
+A_az = [0, 1.0000; 0, -5.8285]; % [0, 1; 0, - (((K_t_az * K_e_az) / (J_az * R_az_motor)) + (b_az / J_az))];
+B_az = [0; 0.0614];% [0; K_t_az / (J_az * R_az_motor)];
 C_az = [1, 0];
 D_az = 0;
  
 % Check Controllability
-Ctrb_el = [B_el, A_el*B_el];
-Ctrl_az = [B_az, A_az*B_az];
-if rank(Ctrb_el) < size(A_el,1)
-    error('Elevation system is NOT controllable');
-end
-if rank(Ctrl_az) < size(A_az,1)
-    error('Azimuth system is NOT controllable');
-end
+Ctrb_el = [0, 0.3116; 0.3116, -0.5275]; % [B_el, A_el*B_el];
+Ctrl_az = [0, 0.0614; 0.0614, -0.3577]; %[B_az, A_az*B_az];
+
+% Probably don't need this anymore
+% if rank(Ctrb_el) < size(A_el,1)
+%    error('Elevation system is NOT controllable');
+% end
+% if rank(Ctrl_az) < size(A_az,1)
+%    error('Azimuth system is NOT controllable');
+% end
 
 % Desired Poles
-Ts_el = 5;  % settling time
-Ts_az = 10;
-wn_el = 4 / Ts_el; 
-wn_az = 4 / Ts_az;
+% Ts_el = 5;  % settling time
+% Ts_az = 10;
+% wn_el = 4 / Ts_el; 
+% wn_az = 4 / Ts_az;
 
-poles_el = single([-wn_el, -wn_el]);  
-poles_az = single([-wn_az, -wn_az]);  
+% poles_el = single([-wn_el, -wn_el]);  
+% poles_az = single([-wn_az, -wn_az]);  
  
 % State Feedback Gain
-K_el = Acker_Ctrl(A_el, B_el, poles_el);
-K_az = Acker_Ctrl(A_az, B_az, poles_az);
+K_el = [2.0540, -0.2986]; % Acker_Ctrl(A_el, B_el, poles_el);
+K_az = [2.6073, -81.9409]; % Acker_Ctrl(A_az, B_az, poles_az);
 
 % Observer Design
-obsv_poles_el = single(5*poles_el); 
-obsv_poles_az = single(20*poles_az);
+% obsv_poles_el = single(5*poles_el); 
+% obsv_poles_az = single(20*poles_az);
 
 % Observer Gains
-L_el = Acker_Obsv(A_el, C_el, obsv_poles_el); 
-L_az = Acker_Obsv(A_az, C_az, obsv_poles_az);
+L_el = [6.3070; 5.3221]; % Acker_Obsv(A_el, C_el, obsv_poles_el); 
+L_az = [10.1715; 4.7156]; % Acker_Obsv(A_az, C_az, obsv_poles_az);
 
 % Reference Gain
-N_r_el = -inv(C_el * inv(A_el - B_el * K_el) * B_el);
-N_r_az = -inv(C_az * inv(A_az - B_az * K_az) * B_az);
+N_r_el = 2.0540; % -inv(C_el * inv(A_el - B_el * K_el) * B_el);
+N_r_az = 2.6073; % -inv(C_az * inv(A_az - B_az * K_az) * B_az);
 
 theta_el_scaled = N_r_el * theta_el_desired;
 theta_az_scaled = N_r_az * theta_az_desired;
@@ -133,7 +135,7 @@ pwm_az = max(min(pwm_az, 100), 0);
 pwm_el = max(min(pwm_el, 100), 0);
 
 % Display for Debugging
-disp(['Max PWM (Azimuth): ', num2str(max(pwm_az)), ' %']);
-disp(['Max PWM (Elevation): ', num2str(max(pwm_el)), ' %']);
+% disp(['Max PWM (Azimuth): ', num2str(max(pwm_az)), ' %']);
+% disp(['Max PWM (Elevation): ', num2str(max(pwm_el)), ' %']);
 
 end

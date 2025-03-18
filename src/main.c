@@ -51,11 +51,6 @@ int main(void)
     uint8 direction = 0;
     int32 angle = 0;
     uint8 percentage = 0;
-    
-    pinout_init();
-    timer_init();
-    motor_init();
-    analog_init();
 
     usart0.params.mode = USART0_MODE_ASYNC_NORMAL;
     usart0.params.baudrate = USART0_BR_57600;
@@ -74,14 +69,12 @@ int main(void)
     amt103.state = 0;
     amt103.angle = 0;
     amt103.direction = 0;
-    encoder_inc_get_state(&amt103);
 
     orbis.pinPWM = PINOUT_B;
     orbis.maskPWM = AZ_ENC_PWM;
     orbis.pinSTA = PINOUT_B;
     orbis.maskSTA = AZ_ENC_STA;
     orbis.angle = 0;
-    // encoder_abs_read(&orbis);
 
     TransmotecAZ.pinPH = PINOUT_B;
     TransmotecAZ.maskPH = AZ_PH;
@@ -100,13 +93,20 @@ int main(void)
     senseAZ.mask = AZ_SHUNT_UB;
     senseEL.mask = EL_SHUNT_UB;
 
+    pinout_init();
+    timer_init();
+    motor_init();
+    analog_init();
     usart0_init(rxBuffer, RX_BUFFER_SIZE, txBuffer, TX_BUFFER_SIZE);
-    motor_set(&TransmotecAZ, 0, MOTOR_DIRECTION_CCW);
-    motor_set(&TransmotecEL, 0, MOTOR_DIRECTION_CCW);
 
     debug = 0;
 
     sei();
+    
+    motor_set(&TransmotecAZ, 0, MOTOR_DIRECTION_CCW);
+    motor_set(&TransmotecEL, 0, MOTOR_DIRECTION_CCW);
+    encoder_inc_get_state(&amt103);
+    encoder_abs_read(&orbis);
 
     while(1){
         encoder_abs_read(&orbis);

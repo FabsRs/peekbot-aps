@@ -23,8 +23,8 @@
 #include "timer.h"
 
 int8 timer_init(void){
-    TCNT0 = 0x00;
-    OCR0A = (0x03);             // Set Timer output to 2MHz
+    OCR0A = (0x07);             // Set Timer output to 2MHz
     TCCR0A |= (1 << WGM01);     // Set to CTC OCRA immediate stop at MAX
+    TIMSK0 |= (1 << OCIE0A);
     return 0;
 }

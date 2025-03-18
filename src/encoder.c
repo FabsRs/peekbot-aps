@@ -33,7 +33,6 @@ ISR(TIMER0_COMPA_vect,ISR_BLOCK){
     if(tctr >= PW_STEPS)
     {
         TCCR0B &= !(1 << CS00);
-        TIMSK0 &= !(1 << OCIE0A);
     }
 }
 
@@ -52,7 +51,7 @@ int8 encoder_abs_calibrate(PENCODER_ABS encoder_abs)
     tctr = 0;
     actr = 0;
     for(uint32 i = 0 ; i < X2PW_TICKS/16 && (!pinout_pin(encoder_abs->pinPWM,encoder_abs->maskPWM)) ; i++);
-    TIMSK0 |= (1 << OCIE0A);
+    TCNT0 = 0x00;
     TCCR0B |= (1 << CS00);
     return 0;
 }

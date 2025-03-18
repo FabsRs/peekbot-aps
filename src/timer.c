@@ -23,8 +23,9 @@
 #include "timer.h"
 
 int8 timer_init(void){
-    TCCR0A |= (1 << COM0A1);    // Set to Clear Timer (OC0A) on Compare March (CTC Mode)
-    TCCR0A |= (1 << WGM01);     // Set to CTC OCRA immediate stip at MAX
+    // TCCR0A |= (1 << COM0A1);    // Set to Clear Timer (OC0A) on Compare March (CTC Mode)
+    TCNT0 = 0x00;
     OCR0A = (0x03);             // Set Timer output to 2MHz
+    TCCR0A |= (1 << WGM01);     // Set to CTC OCRA immediate stop at MAX
     return 0;
 }

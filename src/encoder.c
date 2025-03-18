@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 #include "encoder.h"
-#include "pinout.h"
+#include "usart0.h"
 
 uint16 enc_abs_counter = 0;
 uint16 enc_tim_counter = 0;
@@ -31,6 +31,8 @@ ISR(TIMER0_COMPA_vect,ISR_BLOCK){
     enc_tim_counter++;
     enc_abs_counter += bit_is_set(PINB, AZ_ENC_PWM);
     TIMSK0 |= !(enc_tim_counter%16384) << OCIE0A;
+    OCR0A = (0x03);             // Set Timer output to 2MHz
+    TCCR0A |= (1 << WGM01);     // Set to CTC OCRA immediate stop at MAX
     pinout_port(PINOUT_B, DEBUG_LED, PINOUT_ENABLE);
 }
 
@@ -39,6 +41,11 @@ int8 encoder_abs_angle(PENCODER_ABS encoder_abs)
     if(!encoder_abs)
         return -1;
     encoder_abs->angle=(enc_abs_counter>>2)-1;
+    memset(serial_tx, 0, STR64);
+    snprintf(serial_tx, STR64, "Angle[%d]\n", enc_abs_counter);
+    usart0_serial_tx(serial_tx, strlen(serial_tx));
+    enc_tim_counter = 0;
+    enc_abs_counter = 0;
     return 0;
 }
 
@@ -48,6 +55,8 @@ int8 encoder_abs_calibrate(PENCODER_ABS encoder_abs)
         return -1;
     for(int i = 0 ; i < X2PW_TICKS/16 && (!pinout_pin(encoder_abs->pinPWM,encoder_abs->maskPWM)) ; i++);
     TIMSK0 |= (1<<OCIE0A);
+    OCR0A = (0x03);             // Set Timer output to 2MHz
+    TCCR0A |= (1 << WGM01);     // Set to CTC OCRA immediate stop at MAX
     return 0;
 }
 

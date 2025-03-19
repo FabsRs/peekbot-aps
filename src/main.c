@@ -30,7 +30,7 @@
 #define DEBUG_EL_SHUNT      0x20
 
 #define SERIAL      1024
-#define AZ_OFFSET   0
+#define AZ_OFFSET   8191
 
 int8 debug_print(char* serial_tx);
 
@@ -51,7 +51,7 @@ int main(void)
     uint8 debug = 0;
     uint8 direction = 0;
     uint8 percentage = 0;
-    uint8 turnCount = 0;
+    int8 turnCount = 0;
     int32 angle = 0;
     int32 deltaAngle = 0;
     int32 realAngle = 0;

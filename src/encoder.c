@@ -47,7 +47,7 @@ int8 encoder_abs_read(PENCODER_ABS encoder_abs)
     if(!encoder_abs)
         return -1;
     uint32 angle = 0;
-    encoder_abs->angle = 1024;
+    encoder_abs->angle = PW_STEPS;
     for(uint8 i = 0 ; i < SAMPLING ; i++)
     {
         tctr = 0;

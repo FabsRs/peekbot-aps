@@ -29,7 +29,8 @@
 #define DEBUG_AZ_SHUNT      0x10
 #define DEBUG_EL_SHUNT      0x20
 
-#define SERIAL 1024
+#define SERIAL      1024
+#define AZ_OFFSET   24575
 
 int8 debug_print(char* serial_tx);
 
@@ -49,8 +50,12 @@ int main(void)
 
     uint8 debug = 0;
     uint8 direction = 0;
-    int32 angle = 0;
+    uint32 angle = 0;
+    uint32 deltaAngle = 0;
+    uint32 realAngle = 0;
     uint8 percentage = 0;
+    uint32 prevAngle = 0;
+    uint8 turnCount = 1;
 
     usart0.params.mode = USART0_MODE_ASYNC_NORMAL;
     usart0.params.baudrate = USART0_BR_57600;
@@ -79,7 +84,7 @@ int main(void)
     TransmotecAZ.pinPH = PINOUT_B;
     TransmotecAZ.maskPH = AZ_PH;
     TransmotecAZ.timer = MOTOR_OC1A;
-    TransmotecAZ.inverted = MOTOR_INVERTED_DISABLED;
+    TransmotecAZ.inverted = MOTOR_INVERTED_ENABLED;
     TransmotecAZ.direction = MOTOR_DIRECTION_CCW;
     TransmotecAZ.ocrnx = 0;
 
@@ -107,16 +112,7 @@ int main(void)
     motor_set(&TransmotecEL, 0, MOTOR_DIRECTION_CCW);
     encoder_inc_get_state(&amt103);
     encoder_abs_read(&orbis);
-
-    while(1){
-        encoder_abs_read(&orbis);
-        memset(serial_tx, 0, STR64);
-        snprintf(serial_tx, STR64, "Orbis[%ld]\n", orbis.angle);
-        usart0_serial_tx(serial_tx, strlen(serial_tx));
-    }
-
-    return 0;
-
+    
     while(1){
 
         int count = 0;
@@ -184,6 +180,7 @@ int main(void)
                 
                 token = strtok(NULL, ";");
                 angle = atoi(token);
+                angle += AZ_OFFSET;
                 debug_print("Angle set\n");
 
                 if(orbis.angle >= angle)
@@ -194,14 +191,35 @@ int main(void)
                 {
                     direction = MOTOR_DIRECTION_CW;
                 }
-    
+
+                realAngle=orbis.angle+turnCount*PW_STEPS;
+                deltaAngle = abs(realAngle - angle);
                 motor_set(&TransmotecAZ, percentage, direction);
-                for(int i = 0; i < 10000 && orbis.angle != angle ; i++)
+                for(int i = 0; i < 10000 && deltaAngle >= 32 ; i++)
                 {
+                    if(deltaAngle < 256)
+                        motor_set(&TransmotecAZ, 5, direction);
+                    else if(deltaAngle < 512)
+                        motor_set(&TransmotecAZ, 10, direction);
+
+                    prevAngle = orbis.angle;
                     encoder_abs_read(&orbis);
+
+                    if(direction == MOTOR_DIRECTION_CCW && prevAngle < orbis.angle)
+                    {
+                        turnCount--;
+                    }
+                    else if(direction == MOTOR_DIRECTION_CW && prevAngle > orbis.angle)
+                    {
+                        turnCount++;
+                    }
+                    realAngle=orbis.angle+turnCount*PW_STEPS;
+
                     memset(serial_tx, 0, STR64);
-                    snprintf(serial_tx, STR64, "Orbis: %ld\n", orbis.angle);
+                    snprintf(serial_tx, STR64, "T[%d] R[%ld] A[%ld] P[%ld] O[%ld] D[%s]\n", turnCount, realAngle, angle, prevAngle, orbis.angle, (direction == MOTOR_DIRECTION_CCW) ? "CCW" : "CW");
                     usart0_serial_tx(serial_tx, strlen(serial_tx));
+
+                    deltaAngle = abs(realAngle - angle);
                 }
                 motor_set(&TransmotecAZ, 0, direction);
             }

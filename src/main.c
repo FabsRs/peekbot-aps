@@ -30,7 +30,7 @@
 #define DEBUG_EL_SHUNT      0x20
 
 #define SERIAL      1024
-#define AZ_OFFSET   24575
+#define AZ_OFFSET   0
 
 int8 debug_print(char* serial_tx);
 
@@ -50,12 +50,12 @@ int main(void)
 
     uint8 debug = 0;
     uint8 direction = 0;
-    uint32 angle = 0;
-    uint32 deltaAngle = 0;
-    uint32 realAngle = 0;
     uint8 percentage = 0;
-    uint32 prevAngle = 0;
-    uint8 turnCount = 1;
+    uint8 turnCount = 0;
+    int32 angle = 0;
+    int32 deltaAngle = 0;
+    int32 realAngle = 0;
+    int32 prevAngle = 0;
 
     usart0.params.mode = USART0_MODE_ASYNC_NORMAL;
     usart0.params.baudrate = USART0_BR_57600;
@@ -182,18 +182,19 @@ int main(void)
                 angle = atoi(token);
                 angle += AZ_OFFSET;
                 debug_print("Angle set\n");
+                
+                realAngle=orbis.angle+turnCount*PW_STEPS;
+                deltaAngle = abs(realAngle - angle);
 
-                if(orbis.angle >= angle)
+                if(realAngle >= angle)
                 {
                     direction = MOTOR_DIRECTION_CCW;
                 }
-                else if(orbis.angle < angle)
+                else if(realAngle < angle)
                 {
                     direction = MOTOR_DIRECTION_CW;
                 }
 
-                realAngle=orbis.angle+turnCount*PW_STEPS;
-                deltaAngle = abs(realAngle - angle);
                 motor_set(&TransmotecAZ, percentage, direction);
                 for(int i = 0; i < 10000 && deltaAngle >= 32 ; i++)
                 {
@@ -201,15 +202,17 @@ int main(void)
                         motor_set(&TransmotecAZ, 5, direction);
                     else if(deltaAngle < 512)
                         motor_set(&TransmotecAZ, 10, direction);
+                    else if(deltaAngle < 1024)
+                        motor_set(&TransmotecAZ, 50, direction);
 
                     prevAngle = orbis.angle;
                     encoder_abs_read(&orbis);
 
-                    if(direction == MOTOR_DIRECTION_CCW && prevAngle < orbis.angle)
+                    if(direction == MOTOR_DIRECTION_CCW && (prevAngle - orbis.angle) < -8192)
                     {
                         turnCount--;
                     }
-                    else if(direction == MOTOR_DIRECTION_CW && prevAngle > orbis.angle)
+                    else if(direction == MOTOR_DIRECTION_CW && (prevAngle - orbis.angle) > 8192)
                     {
                         turnCount++;
                     }

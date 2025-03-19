@@ -46,8 +46,9 @@ int8 encoder_abs_read(PENCODER_ABS encoder_abs)
 {
     if(!encoder_abs)
         return -1;
-    uint32 angle = 0;
+    uint32 angle[SAMPLING] = {0};
     encoder_abs->angle = PW_STEPS;
+
     for(uint8 i = 0 ; i < SAMPLING ; i++)
     {
         tctr = 0;
@@ -57,9 +58,20 @@ int8 encoder_abs_read(PENCODER_ABS encoder_abs)
         TCCR0B |= (1 << CS00);
         while(bit_is_set(TIMSK0,OCIE0A));
         TCCR0B &= !(1 << CS00);
-        angle = (actr >> AZ_ENC_PWM)-1;
-        if(angle <= encoder_abs->angle)
-        encoder_abs->angle = angle;
+        angle[i] = (actr >> AZ_ENC_PWM)-1;
+    }
+
+    for(uint8 i = 0 ; i < SAMPLING - 2 ; i++)
+    {
+        if(angle[i + 2] == angle[i + 1] && angle[i + 1] == angle[i])
+        {
+            encoder_abs->angle = angle[i];
+            break;
+        }
+        else
+        {
+            encoder_abs->angle = angle[i];
+        }
     }
     return 0;
 }

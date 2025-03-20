@@ -153,12 +153,15 @@ int main(void)
                 for(int i = 0; i < 10000 && amt103.angle != angle ; i++)
                 {
                     encoder_inc_read(&amt103);
-                    // memset(serial_tx, 0, STR64);
-                    // snprintf(serial_tx, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
-                    // usart0_serial_tx(serial_tx, strlen(serial_tx));
+                    memset(serial_tx, 0, STR64);
+                    snprintf(serial_tx, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
+                    usart0_serial_tx(serial_tx, strlen(serial_tx));
                 }
                 motor_set(&TransmotecEL, 0, direction);
                 debug_print("Stopping Azimuth\n");
+                memset(serial_tx, 0, STR64);
+                snprintf(serial_tx, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
+                usart0_serial_tx(serial_tx, strlen(serial_tx));
             }
             else if(!strcmp(token, "AZ"))
             {
@@ -211,14 +214,17 @@ int main(void)
 
                     realAngle=orbis.angle+turnCount*PW_STEPS;
 
-                    memset(serial_tx, 0, STR64);
-                    snprintf(serial_tx, STR64, "T[%d] R[%ld] A[%ld] P[%ld] O[%ld] D[%ld] D[%s]\n", turnCount, realAngle, angle, prevAngle, orbis.angle, deltaAngle, (direction == MOTOR_DIRECTION_CCW) ? "CCW" : "CW");
-                    usart0_serial_tx(serial_tx, strlen(serial_tx));
+                    // memset(serial_tx, 0, STR64);
+                    // snprintf(serial_tx, STR64, "T[%d] R[%ld] A[%ld] P[%ld] O[%ld] D[%ld] D[%s]\n", turnCount, realAngle, angle, prevAngle, orbis.angle, deltaAngle, (direction == MOTOR_DIRECTION_CCW) ? "CCW" : "CW");
+                    // usart0_serial_tx(serial_tx, strlen(serial_tx));
 
                     deltaAngle = abs(realAngle - angle);
                 }
                 motor_set(&TransmotecAZ, 0, direction);
                 debug_print("Stopping Azimuth\n");
+                memset(serial_tx, 0, STR64);
+                snprintf(serial_tx, STR64, "T[%d] R[%ld] A[%ld] P[%ld] O[%ld] D[%ld] D[%s]\n", turnCount, realAngle, angle, prevAngle, orbis.angle, deltaAngle, (direction == MOTOR_DIRECTION_CCW) ? "CCW" : "CW");
+                usart0_serial_tx(serial_tx, strlen(serial_tx));
             }
 
             // Get next command

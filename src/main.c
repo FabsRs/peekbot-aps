@@ -30,7 +30,7 @@
 #define DEBUG_EL_SHUNT      0x20
 
 #define SERIAL      1024
-#define AZ_OFFSET   8191
+#define AZ_OFFSET   PW_STEPS >> 1
 
 int8 debug_print(char* serial_tx);
 
@@ -56,6 +56,11 @@ int main(void)
     int32 deltaAngle = 0;
     int32 realAngle = 0;
     int32 prevAngle = 0;
+
+    uint32 tolerance = 0;
+    uint32 stoprange1 = 0;
+    uint32 stoprange2 = 0;
+    uint32 stoprange3 = 0;
 
     usart0.params.mode = USART0_MODE_ASYNC_NORMAL;
     usart0.params.baudrate = USART0_BR_57600;
@@ -125,31 +130,15 @@ int main(void)
 
         while(token)
         {
-            if(!strcmp(token, "HOME"))
+            if(!strcmp(token, "EL"))
             {
-                motor_set(&TransmotecEL, 50, MOTOR_DIRECTION_CCW);
-                for(int i = 0 ; i < 1000 ; i ++)
-                {
-                    analog_read(&senseEL);
-                    analog_read(&senseAZ);
-                    memset(serial_tx, 0, STR64);
-                    snprintf(serial_tx, STR64, "EL Shunt\t[%d] - AZ Shunt\t[%d]\n", senseEL.value, senseAZ.value);
-                    usart0_serial_tx(serial_tx, strlen(serial_tx));
-                }
-                motor_set(&TransmotecEL, 0, MOTOR_DIRECTION_CCW);
-
-            }
-            else if(!strcmp(token, "EL"))
-            {
-                debug_print("EL Selected\n");
+                debug_print("Starting Azimuth\n");
                 
                 token = strtok(NULL, ";");
                 percentage = atoi(token);
-                debug_print("Percentage set\n");
                 
                 token = strtok(NULL, ";");
                 angle = atoi(token);
-                debug_print("Angle set\n");
 
                 if(amt103.angle >= angle)
                 {
@@ -164,24 +153,23 @@ int main(void)
                 for(int i = 0; i < 10000 && amt103.angle != angle ; i++)
                 {
                     encoder_inc_read(&amt103);
-                    memset(serial_tx, 0, STR64);
-                    snprintf(serial_tx, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
-                    usart0_serial_tx(serial_tx, strlen(serial_tx));
+                    // memset(serial_tx, 0, STR64);
+                    // snprintf(serial_tx, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
+                    // usart0_serial_tx(serial_tx, strlen(serial_tx));
                 }
                 motor_set(&TransmotecEL, 0, direction);
+                debug_print("Stopping Azimuth\n");
             }
             else if(!strcmp(token, "AZ"))
             {
-                debug_print("AZ Selected\n");
+                debug_print("Starting Azimuth\n");
                 
                 token = strtok(NULL, ";");
                 percentage = atoi(token);
-                debug_print("Percentage set\n");
                 
                 token = strtok(NULL, ";");
                 angle = atoi(token);
                 angle += AZ_OFFSET;
-                debug_print("Angle set\n");
                 
                 realAngle=orbis.angle+turnCount*PW_STEPS;
                 deltaAngle = abs(realAngle - angle);
@@ -196,35 +184,41 @@ int main(void)
                 }
 
                 motor_set(&TransmotecAZ, percentage, direction);
-                for(int i = 0; i < 10000 && deltaAngle >= 32 ; i++)
+                tolerance = (PW_STEPS / 550);
+                stoprange1 = (PW_STEPS / 64);
+                stoprange2 = (PW_STEPS / 32);
+                stoprange3 = (PW_STEPS / 16);
+                for(int i = 0; i < 10000 && deltaAngle >= tolerance; i++)
                 {
-                    if(deltaAngle < 256)
+                    if(deltaAngle < stoprange1)
                         motor_set(&TransmotecAZ, 5, direction);
-                    else if(deltaAngle < 512)
+                    else if(deltaAngle < stoprange2)
                         motor_set(&TransmotecAZ, 10, direction);
-                    else if(deltaAngle < 1024)
+                    else if(deltaAngle < stoprange3)
                         motor_set(&TransmotecAZ, 50, direction);
 
                     prevAngle = orbis.angle;
                     encoder_abs_read(&orbis);
 
-                    if(direction == MOTOR_DIRECTION_CCW && (prevAngle - orbis.angle) < -8192)
+                    if(direction == MOTOR_DIRECTION_CCW && (prevAngle - orbis.angle) < -(PW_STEPS >> 1))
                     {
                         turnCount--;
                     }
-                    else if(direction == MOTOR_DIRECTION_CW && (prevAngle - orbis.angle) > 8192)
+                    else if(direction == MOTOR_DIRECTION_CW && (prevAngle - orbis.angle) > (PW_STEPS >> 1))
                     {
                         turnCount++;
                     }
+
                     realAngle=orbis.angle+turnCount*PW_STEPS;
 
                     memset(serial_tx, 0, STR64);
-                    snprintf(serial_tx, STR64, "T[%d] R[%ld] A[%ld] P[%ld] O[%ld] D[%s]\n", turnCount, realAngle, angle, prevAngle, orbis.angle, (direction == MOTOR_DIRECTION_CCW) ? "CCW" : "CW");
+                    snprintf(serial_tx, STR64, "T[%d] R[%ld] A[%ld] P[%ld] O[%ld] D[%ld] D[%s]\n", turnCount, realAngle, angle, prevAngle, orbis.angle, deltaAngle, (direction == MOTOR_DIRECTION_CCW) ? "CCW" : "CW");
                     usart0_serial_tx(serial_tx, strlen(serial_tx));
 
                     deltaAngle = abs(realAngle - angle);
                 }
                 motor_set(&TransmotecAZ, 0, direction);
+                debug_print("Stopping Azimuth\n");
             }
 
             // Get next command

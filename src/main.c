@@ -132,7 +132,7 @@ int main(void)
         {
             if(!strcmp(token, "EL"))
             {
-                debug_print("Starting Azimuth\n");
+                debug_print("Starting Elevation\n");
                 
                 token = strtok(NULL, ";");
                 percentage = atoi(token);
@@ -152,7 +152,8 @@ int main(void)
                 motor_set(&TransmotecEL, percentage, direction);
                 stoprange1 = (PW_STEPS / 256);
                 stoprange2 = (PW_STEPS / 128);
-                for(int i = 0; i < 10000 && amt103.angle != angle ; i++)
+                prevAngle = amt103.angle;
+                for(int i = 0; amt103.angle != angle ; i++)
                 {
                     deltaAngle = abs(amt103.angle - angle);
 
@@ -162,12 +163,17 @@ int main(void)
                         motor_set(&TransmotecEL, 50, direction);
 
                     encoder_inc_read(&amt103);
-                    memset(serial_tx, 0, STR64);
-                    snprintf(serial_tx, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
-                    usart0_serial_tx(serial_tx, strlen(serial_tx));
+
+                    // if(prevAngle != amt103.angle)
+                    // {
+                    //     memset(serial_tx, 0, STR64);
+                    //     snprintf(serial_tx, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
+                    //     usart0_serial_tx(serial_tx, strlen(serial_tx));
+                    //     prevAngle = amt103.angle;
+                    // }
                 }
                 motor_set(&TransmotecEL, 0, direction);
-                debug_print("Stopping Azimuth\n");
+                debug_print("Stopping Elevation\n");
                 memset(serial_tx, 0, STR64);
                 snprintf(serial_tx, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
                 usart0_serial_tx(serial_tx, strlen(serial_tx));

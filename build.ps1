@@ -1,6 +1,6 @@
 # Compilers
-$CC = 'C:\Users\Admin\Installers\avr8-gnu-toolchain\avr8-gnu-toolchain-3.7.0.1796-win32.any.x86_64\avr8-gnu-toolchain-win32_x86_64\bin\avr-gcc.exe'
-$OBJCPY = 'C:\Users\Admin\Installers\avr8-gnu-toolchain\avr8-gnu-toolchain-3.7.0.1796-win32.any.x86_64\avr8-gnu-toolchain-win32_x86_64\avr\bin\objcopy.exe'
+$CC = 'C:\Users\james\Downloads\avr8-gnu-toolchain-3.7.0.1796-win32.any.x86_64\avr8-gnu-toolchain-win32_x86_64\bin\avr-gcc.exe'
+$OBJCPY = 'C:\Users\james\Downloads\avr8-gnu-toolchain-3.7.0.1796-win32.any.x86_64\avr8-gnu-toolchain-win32_x86_64\avr\bin\objcopy.exe'
 
 # Definitions
 $DEF = @('-D__AVR_ATmega328P__';'-DF_CPU=16000000UL')

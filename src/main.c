@@ -117,7 +117,7 @@ int main(void)
     motor_set(&TransmotecEL, 0, MOTOR_DIRECTION_CCW);
     encoder_inc_get_state(&amt103);
     encoder_abs_read(&orbis);
-    
+
     while(1){
 
         int count = 0;
@@ -163,11 +163,18 @@ int main(void)
                         motor_set(&TransmotecEL, 50, direction);
 
                     encoder_inc_read(&amt103);
+                    
+                    analog_read(&senseEL);
+                    memset(serial_tx, 0, STR64);
+                    snprintf(serial_tx, STR64, "%s\t%ld[%x]\tS[%d]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state, senseEL.value);
+                    usart0_serial_tx(serial_tx, strlen(serial_tx));
+                    prevAngle = amt103.angle;
 
                     // if(prevAngle != amt103.angle)
                     // {
+                    //     analog_read(&senseEL);
                     //     memset(serial_tx, 0, STR64);
-                    //     snprintf(serial_tx, STR64, "%s\t%ld[%x]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state);
+                    //     snprintf(serial_tx, STR64, "%s\t%ld[%x]\tS[%d]\n", (amt103.direction == ENCODER_DIR_CW) ? "CW" : "CCW", amt103.angle, amt103.state, senseEL.value);
                     //     usart0_serial_tx(serial_tx, strlen(serial_tx));
                     //     prevAngle = amt103.angle;
                     // }
@@ -240,8 +247,10 @@ int main(void)
 
                     deltaAngle = abs(realAngle - angle);
                     
+                    analog_read(&senseAZ);
+                    
                     memset(serial_tx, 0, STR64);
-                    snprintf(serial_tx, STR64, "T[%d] R[%ld] A[%ld] P[%ld] O[%ld] D[%ld] D[%s]\n", turnCount, realAngle, angle, prevAngle, orbis.angle, deltaAngle, (direction == MOTOR_DIRECTION_CCW) ? "CCW" : "CW");
+                    snprintf(serial_tx, STR64, "T[%d] R[%ld] A[%ld] P[%ld] O[%ld] D[%ld] D[%s] S[%d]\n", turnCount, realAngle, angle, prevAngle, orbis.angle, deltaAngle, (direction == MOTOR_DIRECTION_CCW) ? "CCW" : "CW", senseAZ.value);
                     usart0_serial_tx(serial_tx, strlen(serial_tx));
                 }
                 motor_set(&TransmotecAZ, 0, direction);

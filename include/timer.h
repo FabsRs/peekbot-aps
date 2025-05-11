@@ -26,6 +26,7 @@
 #include "avr.h"
 #include "ccommons.h"
 
+// Initializes the timer configuration
 int8 timer_init(void);
 
 #endif//TIMER_H

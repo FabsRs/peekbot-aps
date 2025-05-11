@@ -35,6 +35,13 @@
 #define MOTOR_INVERTED_ENABLED  0x00
 #define MOTOR_INVERTED_DISABLED 0x01
 
+// Structure to represent a motor
+// timer: Timer pin used for PWM control (OCRnA, OCRnB)
+// inverted: Flag indicating if the motor direction is inverted
+// pinPH: Pin for setting the motor direction (Connected to equivalent pin of motor driver)
+// maskPH: Mask for the direction pin
+// direction: Current direction of the motor
+// ocrnx: Output compare register value for PWM control (Top value of the match interrupt)
 typedef struct _MOTOR
 {
     // Parameters
@@ -47,9 +54,16 @@ typedef struct _MOTOR
     uint8 ocrnx;
 }*PMOTOR, MOTOR;
 
+// Initializes the motor control using timer 2B
 int8 motor_init_oc2b(void);
+
+// Initializes the motor control using timer 1A
 int8 motor_init_oc1a(void);
+
+// Initializes the motor control
 int8 motor_init(void);
+
+// Sets the motor speed and direction
 int8 motor_set(PMOTOR motor, uint16 percentage, uint8 direction);
 
 #endif//MOTOR_H

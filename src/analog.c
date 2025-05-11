@@ -22,6 +22,15 @@
 
 #include "analog.h"
 
+
+/*
+ * Function: analog_init
+ * --------------------
+ * Initializes the analog module by setting reference voltages, enabling analog inputs,
+ * and setting the ADC prescaler to its maximum value.
+ *
+ * returns: 0 on success
+ */
 int8 analog_init()
 {
     ADMUX |= (1 << REFS0) | (1 << REFS1);   // NOTE: Assumes capacitor at AREF pin (Arduino Nano)
@@ -32,6 +41,15 @@ int8 analog_init()
     return 0;
 }
 
+/*
+ * Function: analog_read
+ * --------------------
+ * Reads the value from the specified analog input channel.
+ *
+ * analog: pointer to an ANALOG structure containing the mask for the input channel
+ *
+ * returns: 0 on success, -1 if the read operation times out
+ */
 int8 analog_read(PANALOG analog)
 {
     uint16 maxctr = 1000;

@@ -90,8 +90,20 @@
 #define AZ_SHUNT_UB         PORTC4      // IN (Analog)          DDRC4:0     PORTC4:0    A4
 #define EL_SHUNT_UB         PORTC5      // IN (Analog)          DDRC5:0     PORTC5:0    A5
 
+// Initializes the pinout configuration
 int8 pinout_init(void);
+
+// Reads the state of a specified pin
+// pin: The pin to read (PINOUT_B, PINOUT_C, PINOUT_D)
+// mask: The mask to apply to the pin
+// returns: The state of the pin (0 or 1), -1 if an error occurs
 int8 pinout_pin(uint8 pin, uint8 mask);
+
+// Sets the state of a specified port
+// port: The port to set (PINOUT_B, PINOUT_C, PINOUT_D)
+// mask: The mask to apply to the port
+// act: The action to perform (PINOUT_ENABLE or PINOUT_DISABLE)
+// returns: 0 on success, -1 if an error occurs
 int8 pinout_port(uint8 pin, uint8 mask, uint8 act);
 
 #endif//PINOUT_H

@@ -22,6 +22,18 @@
 
 #include "usart0.h"
 
+/*
+ * Function: usart0_init
+ * --------------------
+ * Initializes USART0 with specified buffers and sets default parameters.
+ *
+ * rxBuffer: Pointer to the receiver buffer
+ * rxBufferSize: Size of the receiver buffer
+ * txBuffer: Pointer to the transmitter buffer
+ * txBufferSize: Size of the transmitter buffer
+ *
+ * returns: 0 on success, -1 if buffer sizes are invalid
+ */
 int8 usart0_init(puint8 rxBuffer, uint16 rxBufferSize, puint8 txBuffer, uint16 txBufferSize)
 {
     __pi(rxBuffer);
@@ -52,6 +64,16 @@ int8 usart0_init(puint8 rxBuffer, uint16 rxBufferSize, puint8 txBuffer, uint16 t
     return 0;
 }
 
+/*
+ * Function: usart0_set_baud
+ * --------------------
+ * Sets the baud rate for USART0 based on the specified mode and baud rate.
+ *
+ * mode: USART mode (USART0_MODE_ASYNC_NORMAL or USART0_MODE_ASYNC_DOUBLE)
+ * baudrate: Baud rate for communication
+ *
+ * returns: 0 on success, -1 if parameters are invalid
+ */
 int8 usart0_set_baud(uint8 mode, uint32 baudrate)
 {
     if(baudrate <= 0)
@@ -83,6 +105,13 @@ int8 usart0_set_baud(uint8 mode, uint32 baudrate)
     return 0;
 }
 
+/*
+ * Function: usart0_set_default
+ * --------------------
+ * Sets default parameters for USART0 by clearing specific control registers.
+ *
+ * returns: 0 on success
+ */
 int8 usart0_set_default(void)
 {
     UCSR0A &= ~(1<<MPCM0);
@@ -97,6 +126,17 @@ int8 usart0_set_default(void)
     return 0;
 }
 
+/*
+ * Function: usart0_set_frame
+ * --------------------
+ * Sets the frame format for USART0 based on the specified data bits, parity, and stop bits.
+ *
+ * databits: Number of data bits (USART0_DATABITS_5, USART0_DATABITS_6, USART0_DATABITS_7, USART0_DATABITS_8)
+ * parity: Parity mode (USART0_PARITY_NONE, USART0_PARITY_EVEN, USART0_PARITY_ODD)
+ * stopbits: Number of stop bits (USART0_STOPBITS_1, USART0_STOPBITS_2)
+ *
+ * returns: 0 on success, -1 if parameters are invalid
+ */
 int8 usart0_set_frame(uint8 databits, uint8 parity, uint8 stopbits)
 {
     if(databits <= 0 || parity <= 0 || stopbits <= 0)
@@ -163,6 +203,15 @@ int8 usart0_set_frame(uint8 databits, uint8 parity, uint8 stopbits)
     return 0;
 }
 
+/*
+ * Function: usart0_set_rx
+ * --------------------
+ * Enables or disables the receiver for USART0 based on the specified parameter.
+ *
+ * rx: Receiver enable/disable (USART0_RX_ENABLE, USART0_RX_DISABLE)
+ *
+ * returns: 0 on success, -1 if parameter is invalid
+ */
 int8 usart0_set_rx(uint8 rx)
 {
     if(rx <= 0)
@@ -186,6 +235,16 @@ int8 usart0_set_rx(uint8 rx)
 
     return 0;
 }
+
+/*
+ * Function: usart0_set_tx
+ * --------------------
+ * Enables or disables the transmitter for USART0 based on the specified parameter.
+ *
+ * tx: Transmitter enable/disable (USART0_TX_ENABLE, USART0_TX_DISABLE)
+ *
+ * returns: 0 on success, -1 if parameter is invalid
+ */
 int8 usart0_set_tx(uint8 tx)
 {
     if(tx <= 0)
@@ -208,6 +267,16 @@ int8 usart0_set_tx(uint8 tx)
     return 0;
 }
 
+/*
+ * Function: usart0_serial_tx
+ * --------------------
+ * Transmits a string via USART0.
+ *
+ * string: Pointer to the string to be transmitted
+ * size: Size of the string
+ *
+ * returns: 0 on success, -1 if string is NULL
+ */
 int8 usart0_serial_tx(char* string, uint16 size)
 {
     if(!string)
@@ -219,6 +288,15 @@ int8 usart0_serial_tx(char* string, uint16 size)
     return 0;
 }
 
+/*
+ * Function: usart0_serial_tx_byte
+ * --------------------
+ * Transmits a single byte via USART0.
+ *
+ * c: Byte to be transmitted
+ *
+ * returns: 0 on success
+ */
 int8 usart0_serial_tx_byte(char c)
 {
     if(usart0.tx.head == usart0.tx.tail && bit_is_set(UCSR0A, UDRE0))
@@ -250,6 +328,13 @@ int8 usart0_serial_tx_byte(char c)
     return 0;
 }
 
+/*
+ * Function: usart0_isr_udr
+ * --------------------
+ * USART0 data register empty interrupt service routine.
+ *
+ * returns: 0 on success
+ */
 int8 usart0_isr_udr(void)
 {
     uint8 c = usart0.tx.buffer[usart0.tx.tail];
@@ -268,6 +353,16 @@ ISR(USART_UDRE_vect, ISR_BLOCK)
     usart0_isr_udr();
 }
 
+/*
+ * Function: usart0_serial_rx
+ * --------------------
+ * Receives a string via USART0.
+ *
+ * string: Pointer to the string to be received
+ * size: Size of the string
+ *
+ * returns: 0 on success, -1 if string is NULL
+ */
 int8 usart0_serial_rx(char* string, uint16 size)
 {
     uint16 count = 0;
@@ -283,11 +378,25 @@ int8 usart0_serial_rx(char* string, uint16 size)
     return 0;
 }
 
+/*
+ * Function: usart0_serial_rx_count
+ * --------------------
+ * Returns the number of bytes available in the receiver buffer.
+ *
+ * returns: Number of bytes available in the receiver buffer
+ */
 uint16 usart0_serial_rx_count()
 {
     return (usart0.rx.size + usart0.rx.head - usart0.rx.tail) % usart0.rx.size;
 }
 
+/*
+ * Function: usart0_serial_rx_flush
+ * --------------------
+ * Flushes the receiver buffer.
+ *
+ * returns: 0 on success
+ */
 int8 usart0_serial_rx_flush()
 {
     memset(usart0.rx.buffer, 0, usart0.rx.size);
@@ -296,6 +405,15 @@ int8 usart0_serial_rx_flush()
     return 0;
 }
 
+/*
+ * Function: usart0_serial_rx_byte
+ * --------------------
+ * Receives a single byte via USART0.
+ *
+ * c: Pointer to the byte to be received
+ *
+ * returns: 0 on success, -1 if receiver buffer is empty
+ */
 int8 usart0_serial_rx_byte(char* c)
 {
     if(usart0.rx.head == usart0.rx.tail)
@@ -310,6 +428,13 @@ int8 usart0_serial_rx_byte(char* c)
     }
 }
 
+/*
+ * Function: usart0_isr_rx
+ * --------------------
+ * USART0 receive complete interrupt service routine.
+ *
+ * returns: 0 on success
+ */
 int8 usart0_isr_rx(void)
 {
     if(bit_is_clear(UCSR0A, UPE0))
@@ -334,6 +459,15 @@ ISR(USART_RX_vect, ISR_BLOCK)
     usart0_isr_rx();
 }
 
+/*
+ * Function: usart0_delay_ms
+ * --------------------
+ * Delays execution for a specified number of milliseconds.
+ *
+ * time: Number of milliseconds to delay
+ *
+ * returns: 0 on success
+ */
 int8 usart0_delay_ms(uint16 time)
 {
     do{

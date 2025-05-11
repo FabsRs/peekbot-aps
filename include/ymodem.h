@@ -33,18 +33,30 @@
 #define CAN 0x18
 #define CRC16_POLY 0x1021
 
+// Enum to represent YMODEM status
+// YMODEM_OK: Operation successful
+// YMODEM_ERROR: Operation failed
+// YMODEM_TIMEOUT: Operation timed out
 typedef enum {
     YMODEM_OK,
     YMODEM_ERROR,
     YMODEM_TIMEOUT
 } ymodem_status;
 
+// Structure to represent a YMODEM file
+// data: Pointer to the file data
+// size: Size of the file
+// filename: Name of the file
 typedef struct _YMODEM_FILE{
     const uint8* data;
     uint32 size;
     char filename[256];
 }*PYMODEM_FILE, YMODEM_FILE;
 
+// Calculates the CRC16 checksum for the given data
+// data: Pointer to the data
+// size: Size of the data
+// returns: CRC16 checksum
 uint16 ymodem_crc16(const uint8* data, uint16 size);
 
 #endif//YMODEM_H

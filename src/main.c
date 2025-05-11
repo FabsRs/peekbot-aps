@@ -32,8 +32,26 @@
 #define SERIAL      1024
 #define AZ_OFFSET   PW_STEPS >> 1
 
+/*
+ * Function: debug_print
+ * --------------------
+ * Sends a debug message via USART0.
+ *
+ * serial_tx: Pointer to the string to be transmitted
+ *
+ * returns: 0 on success
+ */
 int8 debug_print(char* serial_tx);
 
+/*
+ * Function: main
+ * --------------------
+ * Main function that initializes various components and handles serial communication for motor control.
+ *
+ * Initializes buffers, USART0 parameters, encoder and motor configurations, and sets up the main loop for handling commands.
+ *
+ * returns: 0 on success
+ */
 int main(void)
 {
     uint8 rxBuffer[RX_BUFFER_SIZE];

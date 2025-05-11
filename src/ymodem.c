@@ -22,6 +22,16 @@
 
 #include "ymodem.h"
 
+/*
+ * Function: ymodem_crc16
+ * --------------------
+ * Calculates the CRC16 checksum for the given data using the polynomial 0x1021.
+ *
+ * data: Pointer to the data
+ * size: Size of the data
+ *
+ * returns: CRC16 checksum
+ */
 uint16 ymodem_crc16(const uint8* data, uint16 size)
 {    uint16 crc = 0;
     for (uint16 i = 0; i < size; i++) {

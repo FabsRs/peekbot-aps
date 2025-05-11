@@ -22,6 +22,14 @@
 
 #include "timer.h"
 
+/*
+ * Function: timer_init
+ * --------------------
+ * Initializes the timer configuration by setting the appropriate registers.
+ * Sets the timer to CTC mode with an immediate stop at MAX and configures the output to 2MHz.
+ *
+ * returns: 0 on success
+ */
 int8 timer_init(void){
     TCCR0A |= (1 << WGM01);     // Set to CTC OCRA immediate stop at MAX
     OCR0A = (0x07);             // Set Timer output to 2MHz

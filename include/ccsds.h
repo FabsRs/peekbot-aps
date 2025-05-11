@@ -25,6 +25,15 @@
 
 #include "ccommons.h"
 
+// Structure to represent a CCSDS packet
+// version: Version number (3 bits)
+// packetType: Packet type (1 bit)
+// secHeaderFlag: Secondary header flag (1 bit)
+// apid: Application Process Identifier (10 bits)
+// payloadFlag: Payload flag (1 bit)
+// sequenceFlag: Sequence flag (2 bits)
+// packetId: Packet identifier (14 bits)
+// dataLength: Length of the data (16 bits)
 typedef struct _CCSDS
 {
     uint8 version : 3;

@@ -33,6 +33,15 @@ ISR(TIMER0_COMPA_vect,ISR_BLOCK){
     TIMSK0 &= ((!(1 << OCIE0A)) | ((tctr < PW_STEPS) << OCIE0A));
 }
 
+/*
+ * Function: encoder_inc_get_state
+ * --------------------
+ * Gets the current state of the incremental encoder by reading the pins.
+ *
+ * encoder_inc: pointer to an ENCODER_INC structure containing the pin and mask information
+ *
+ * returns: 0 on success
+ */
 int8 encoder_inc_get_state(PENCODER_INC encoder_inc)
 {
     encoder_inc->state = 
@@ -42,6 +51,15 @@ int8 encoder_inc_get_state(PENCODER_INC encoder_inc)
     return 0;
 }
 
+/*
+ * Function: encoder_abs_read
+ * --------------------
+ * Reads the value from the absolute encoder by sampling the PWM signal.
+ *
+ * encoder_abs: pointer to an ENCODER_ABS structure containing the pin and mask information
+ *
+ * returns: 0 on success, -1 if the encoder_abs pointer is NULL
+ */
 int8 encoder_abs_read(PENCODER_ABS encoder_abs)
 {
     if(!encoder_abs)
@@ -76,6 +94,15 @@ int8 encoder_abs_read(PENCODER_ABS encoder_abs)
     return 0;
 }
 
+/*
+ * Function: encoder_inc_read
+ * --------------------
+ * Reads the value from the incremental encoder by comparing the current state with the previous state.
+ *
+ * encoder_inc: pointer to an ENCODER_INC structure containing the pin and mask information
+ *
+ * returns: 0 on success, -1 if the encoder_inc pointer is NULL
+ */
 int8 encoder_inc_read(PENCODER_INC encoder_inc)
 {
     if(!encoder_inc)

@@ -22,6 +22,13 @@
 
 #include "motor.h"
 
+/*
+ * Function: motor_init_oc2b
+ * --------------------
+ * Initializes the motor control using timer 2B by setting the appropriate registers.
+ *
+ * returns: 0 on success
+ */
 int8 motor_init_oc2b(void)
 {
     TCCR2A |= (1 << COM2B1);
@@ -30,6 +37,13 @@ int8 motor_init_oc2b(void)
     return 0;
 }
 
+/*
+ * Function: motor_init_oc1a
+ * --------------------
+ * Initializes the motor control using timer 1A by setting the appropriate registers.
+ *
+ * returns: 0 on success
+ */
 int8 motor_init_oc1a(void)
 {
     TCCR1A |= (1 << COM1A1);
@@ -38,6 +52,13 @@ int8 motor_init_oc1a(void)
     return 0;
 }
 
+/*
+ * Function: motor_init
+ * --------------------
+ * Initializes the motor control by calling the initialization functions for both timers.
+ *
+ * returns: 0 on success
+ */
 int8 motor_init(void)
 {
     motor_init_oc2b();
@@ -45,6 +66,17 @@ int8 motor_init(void)
     return 0;
 }
 
+/*
+ * Function: motor_set
+ * --------------------
+ * Sets the motor speed and direction based on the given parameters.
+ *
+ * motor: pointer to a MOTOR structure containing the motor configuration
+ * percentage: speed percentage (0-100)
+ * direction: direction of the motor (MOTOR_DIRECTION_CW or MOTOR_DIRECTION_CCW)
+ *
+ * returns: 0 on success, -1 if the motor pointer is NULL
+ */
 int8 motor_set(PMOTOR motor, uint16 percentage, uint8 direction)
 {
     if(!motor)

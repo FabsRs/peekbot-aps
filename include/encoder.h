@@ -38,6 +38,13 @@
 #define PW_STEPS    8192
 #define SAMPLING    20
 
+
+// Structure to represent an absolute encoder
+// pinPWM: PWM pin for the encoder
+// maskPWM: Mask for the PWM pin
+// pinSTA: Status pin for the encoder (Absolute encoder position status: 11, 01, 00, 10)
+// maskSTA: Mask for the status pin
+// angle: Current angle of the encoder
 typedef struct _ENCODER_ABS
 {
     // Parameters
@@ -50,6 +57,16 @@ typedef struct _ENCODER_ABS
 
 }*PENCODER_ABS, ENCODER_ABS;
 
+
+// Structure to represent an incremental encoder
+// pinA: Pin A for the encoder
+// maskA: Mask for pin A
+// pinB: Pin B for the encoder
+// maskB: Mask for pin B
+// ppr: Pulses per revolution
+// angle: Current angle of the encoder
+// direction: Current direction of rotation
+// state: Current state of the encoder (unused)
 typedef struct _ENCODER_INC
 {
     // Parameters
@@ -64,8 +81,14 @@ typedef struct _ENCODER_INC
     uint8 state;
 }*PENCODER_INC, ENCODER_INC;
 
+
+// Gets the current state of the incremental encoder
 int8 encoder_inc_get_state(PENCODER_INC encoder_inc);
+
+// Reads the value from the absolute encoder
 int8 encoder_abs_read(PENCODER_ABS encoder_abs);
+
+// Reads the value from the incremental encoder
 int8 encoder_inc_read(PENCODER_INC encoder_inc);
 
 #endif//ENCODER_H

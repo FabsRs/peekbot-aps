@@ -69,6 +69,15 @@
 #define USART0_TX_ENABLE	0x01
 #define USART0_TX_DISABLE	0x02
 
+// Structure to represent USART0 parameters
+// mode: USART mode (USART0_MODE_ASYNC_NORMAL or USART0_MODE_ASYNC_DOUBLE)
+// baudrate: Baud rate for communication
+// databits: Number of data bits (USART0_DATABITS_5, USART0_DATABITS_6, USART0_DATABITS_7, USART0_DATABITS_8)
+// parity: Parity mode (USART0_PARITY_NONE, USART0_PARITY_EVEN, USART0_PARITY_ODD)
+// stopbits: Number of stop bits (USART0_STOPBITS_1, USART0_STOPBITS_2)
+// rx: Receiver enable/disable (USART0_RX_ENABLE, USART0_RX_DISABLE)
+// tx: Transmitter enable/disable (USART0_TX_ENABLE, USART0_TX_DISABLE)
+// timeout_ms: Timeout in milliseconds
 typedef struct _USART0_PARAMS
 {
 	uint8 mode;
@@ -81,6 +90,11 @@ typedef struct _USART0_PARAMS
 	uint16 timeout_ms;
 }*PUSART0_PARAMS,USART0_PARAMS;
 
+// Structure to represent USART0 buffer
+// buffer: Pointer to the buffer
+// size: Size of the buffer
+// head: Head index for the buffer
+// tail: Tail index for the buffer
 typedef struct _USART0_BUFFER
 {
 	puint8 buffer;
@@ -89,6 +103,10 @@ typedef struct _USART0_BUFFER
 	uint16 tail;
 }*PUSRAT0_BUFFER,USART0_BUFFER;
 
+// Structure to represent USART0 status
+// tx_busy: Flag indicating if transmission is busy
+// rx_full: Flag indicating if the receiver buffer is full
+// rx_void: Flag indicating if the receiver buffer is empty
 typedef struct _USART0_STATUS
 {
 	uint8 tx_busy;
@@ -96,6 +114,11 @@ typedef struct _USART0_STATUS
 	uint8 rx_void;
 }*PUSART0_STATUS,USART0_STATUS;
 
+// Structure to represent USART0
+// params: USART0 parameters
+// rx: Receiver buffer
+// tx: Transmitter buffer
+// status: USART0 status
 typedef struct _USART0
 {
 	USART0_PARAMS params;
@@ -104,21 +127,49 @@ typedef struct _USART0
 	USART0_STATUS status;
 }*PUSART0,USART0;
 
+// Initializes USART0 with specified buffers
 int8 usart0_init(puint8 rxBuffer, uint16 rxBufferSize, puint8 txBuffer, uint16 txBufferSize);
+
+// Sets the baud rate for USART0
 int8 usart0_set_baud(uint8 mode, uint32 baudrate);
+
+// Sets default parameters for USART0
 int8 usart0_set_default();
+
+// Sets the frame format for USART0
 int8 usart0_set_frame(uint8 databits, uint8 parity, uint8 stopbits);
+
+// Enables or disables the receiver for USART0
 int8 usart0_set_rx(uint8 rx);
+
+// Enables or disables the transmitter for USART0
 int8 usart0_set_tx(uint8 tx);
 
+// Transmits a string via USART0
 int8 usart0_serial_tx(char* string, uint16 size);
+
+// Transmits a single byte via USART0
 int8 usart0_serial_tx_byte(char C);
+
+// USART0 data register empty interrupt service routine
 int8 usart0_isr_udr(void);
+
+// Receives a string via USART0
 int8 usart0_serial_rx(char* string, uint16 size);
+
+// Returns the number of bytes available in the receiver buffer
 uint16 usart0_serial_rx_count();
+
+// Flushes the receiver buffer
 int8 usart0_serial_rx_flush();
+
+// Receives a single byte via USART0
 int8 usart0_serial_rx_byte(char* c);
+
+// USART0 receive complete interrupt service routine
 int8 usart0_isr_rx(void);
+
+// Delays execution for a specified
 int8 usart0_delay_ms(uint16 time);
 
 volatile USART0 usart0;

@@ -26,6 +26,10 @@
 #include "avr.h"
 #include "ccommons.h"
 
+
+// Structure to represent an analog input
+// mask: Mask to select the analog input channel
+// value: Value read from the analog input
 typedef struct _ANALOG
 {
     // Parameter
@@ -34,7 +38,10 @@ typedef struct _ANALOG
     uint16 value;
 }*PANALOG, ANALOG;
 
+// Initializes the analog module
 int8 analog_init();
+
+// Reads the value from the specified analog input into the structure
 int8 analog_read(PANALOG analog);
 
 #endif//ANALOG_H

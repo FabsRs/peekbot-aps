@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "*.cs": "csharp",
+        "io.h": "c",
+        "iom328p.h": "c",
+        "core.h": "c",
+        "usart0.h": "c",
+        "interrupt.h": "c",
+        "ccommons.h": "c",
+        "avr.h": "c",
+        "ymodem.h": "c",
+        "motor.h": "c",
+        "analog.h": "c"
+    }
+}

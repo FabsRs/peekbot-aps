@@ -1,0 +1,146 @@
+clc; clear; close all;
+
+% --------- Global Parameters ----------
+
+g = single(9.8067);     % acceleration due to gravity (downward) [m/s^2]
+m = single(1.65);       % Antenna Mass [kg]
+Vs = single(12);        % Supply Voltage [V]
+
+% ---------- Elevation & Azimuth Parameters ---------
+
+I_el = single(0.02523);     % Moment of Inertia (EL)[kg.m^2]
+L_el = single(0.10986);     % Antenna Moment Arm (EL) [m]
+FOS_el = single(1.4);       % Factor of Safety
+I_az = single(0.02035);     % Moving Assy Mom. of Inertia about AZ Axis [kg/m^2]
+FOS_az = single(2.8);       % Factor of Safety 
+
+% ------------ Time --------------------
+total_time = single(30);        % Time Interval [s]
+dt = single(0.1);               % Time step [s]
+time = single(0:dt:total_time); % Time vector [s]
+N = single(length(time));       % Number of time steps 
+
+% ---------- Elevation Motor Parameters (Transmotec) -------------
+
+I_el_stall = single(0.24);    % nominal current[A] 
+I_el_no_load = single(0.06);  % No load current [A]
+tau_el = single(0.005);       % Estimating time const to 5ms
+
+omega_el_no_load = single(4900*2*pi/60); % [rad/s]
+omega_el_nominal = single(21*2*pi/60);
+
+R_el_motor = single(Vs/I_el_stall);       % motor resistance [ohm]
+L_el_motor = single(R_el_motor*tau_el);   % motor inductance [H]
+K_e_el = single((Vs-(I_el_no_load * R_el_motor))/(omega_el_no_load)); % Back emf constant [V/(rad/s)]
+gear_ratio_el = single(200); % Gear reduction
+
+J_el = single(I_el * (gear_ratio_el)/100); % motor inertia
+b_el = single(0.6 * J_el); % damping coeff
+K_t_el = single(K_e_el *(gear_ratio_el)); % Adjusting torque constant by gear ratio
+
+% ---------- Azimuth Motor Parameters (Transmotec)-------------
+
+I_az_stall = single(1.5);     % nominal current [A]
+I_az_no_load = single(0.06);  % No load current [A]
+tau_az = single(0.005);       % Estimating time const to 5ms
+
+omega_az_no_load = single(4900*2*pi/60);   % in rad/s
+omega_az_nominal = single((5*2*pi)/60);    % in rad/s (after gearing)
+
+R_az_motor = single(Vs/I_az_stall); % [ohm] Resistance for Az motor
+L_az_motor = single(R_az_motor * tau_az); % [H] Inductance of the Az motor
+
+K_e_az = single((Vs - (I_az_no_load * R_az_motor))/(omega_az_no_load)); % Back emf constant
+gear_ratio_az = single(1012); % Gear reduction
+
+J_az = single(I_az * (gear_ratio_az)/100);
+b_az = single(0.6 * J_az);
+K_t_az = single(K_e_az *(gear_ratio_az)); % Adjust torque constant by gear ratio
+
+% -------- Encoder Feedback Simulation ---------
+
+% Azimuth Encoder (Absolute, 14-bit resolution)
+encoder_az_resolution = 2^14; % 16384 counts per revolution
+encoder_az_conversion = (2 * pi) / encoder_az_resolution; % Convert counts to radians
+
+% Elevation Encoder (Incremental, 2048 PPR resolution)
+encoder_el_resolution = 2048 * 4; % Quadrature decoding (4x resolution)
+encoder_el_conversion = (2 * pi) / encoder_el_resolution; % Convert counts to radians
+
+% ---------- Define State-Space Model ----------
+% Elevation State-Space
+A_el = [0, 1; 0, - ((K_t_el * K_e_el) / (J_el * R_el_motor) + (b_el / J_el))];
+B_el = [0; K_t_el / (J_el * R_el_motor)];
+C_el = [1, 0];
+D_el = 0;
+
+% Azimuth State-Space
+A_az = [0, 1; 0, - ((K_t_az * K_e_az) / (J_az * R_az_motor) + (b_az / J_az))];
+B_az = [0; K_t_az / (J_az * R_az_motor)];
+C_az = [1, 0];
+D_az = 0;
+
+% Check Controllability
+if rank(ctrb(A_el, B_el)) < size(A_el,1)
+    error('Elevation system is NOT controllable');
+end
+if rank(ctrb(A_az, B_az)) < size(A_az,1)
+    error('Azimuth system is NOT controllable');
+end
+
+% Define Desired Poles
+Ts_el = 2;  % settling time
+Ts_az = 2;
+
+wn_el = 4 / Ts_el; 
+wn_az = 4 / Ts_az; 
+
+poles_el = [-wn_el, -wn_el];  
+poles_az = [-wn_az, -wn_az];  
+
+% State Feedback Gain using Ackermann's Formula
+K_el = acker(A_el, B_el, poles_el);
+K_az = acker(A_az, B_az, poles_az);
+
+% Define Closed-Loop System
+A_cl_el = A_el - B_el * K_el;
+A_cl_az = A_az - B_az * K_az;
+
+sys_el = ss(A_cl_el, B_el, C_el, D_el);
+sys_az = ss(A_cl_az, B_az, C_az, D_az);
+
+G_ss_el = dcgain(sys_el);
+G_ss_az = dcgain(sys_az);
+
+%------ Desired Setpoints -----------
+theta_el_desired = single(deg2rad(45)) * ones(size(time)); 
+theta_az_desired = single(deg2rad(90)) * ones(size(time));
+
+% Apply Step Inputs Using lsim()
+u_el = theta_el_desired / G_ss_el;
+u_az = theta_az_desired / G_ss_az;
+
+y_el = lsim(sys_el, u_el, time) * (180/pi);  % Convert to degrees
+y_az = lsim(sys_az, u_az, time) * (180/pi); 
+
+% Simulate Encoders (Quantized Output)
+y_el_quantized = round(y_el / (180/pi * encoder_el_conversion)) * (180/pi * encoder_el_conversion);  
+y_az_quantized = round(y_az / (180/pi * encoder_az_conversion)) * (180/pi * encoder_az_conversion);
+
+% Idk how to simulate the encoders
+
+% Plot Step Response
+figure;
+subplot(2,1,1);
+plot(time, y_el, 'b', 'LineWidth', 1.5);
+title('Step Response - Elevation (Degrees, 45° Input)');
+xlabel('Time (s)');
+ylabel('Angle (°)');
+grid on;
+
+subplot(2,1,2);
+plot(time, y_az, 'b', 'LineWidth', 1.5);
+title('Step Response - Azimuth (Degrees, 90° Input)');
+xlabel('Time (s)');
+ylabel('Angle (°)');
+grid on;

@@ -9,11 +9,19 @@ TODO: Add nice picture of APS
   <summary>Table of Contents</summary>
   <ol>
     <li>
+      <a href="#coding-standard">CODING STANDARD</a>
+      <ul>
+        <li><a href="#philosophy">Philosophy</a></li>
+        <li><a href="#versioning">Versioning</a></li>
+        <li><a href="#syntax">Syntax</a></li>
+        <li><a href="#resources">Resourcesx</a></li>
+      </ul>
       <a href="#introduction">INTRODUCTION</a>
       <ul>
-        <li><a href="#intent">Intent</a></li>
+        <li><a href="#project-overview">Project Overview</a></li>
         <li><a href="#requirements">Requirements</a></li>
-        <li><a href="#versioning">Versioning</a></li>
+        <li><a href="#history">History</a></li>
+        <li><a href="#debugging">Debugging</a></li>
       </ul>
     </li>
     <li>
@@ -36,12 +44,42 @@ TODO: Add nice picture of APS
   </ol>
 </details>
 
+<!-- CODING STANDARD -->
+## CODING STANDARD
+
+### Philosophy
+
+The Power o 10: Rules for Developing Safety-Critical Code [1]
+
+    Avoid complex flow constructs, such as goto and recursion.
+    All loops must have fixed bounds. This prevents runaway code.
+    Avoid heap memory allocation.
+    Restrict functions to a single printed page.
+    Use a minimum of two runtime assertions per function.
+    Restrict the scope of data to the smallest possible.
+    Check the return value of all non-void functions, or cast to void to indicate the return value is useless.
+    Use the preprocessor sparingly.
+    Limit pointer use to a single dereference, and do not use function pointers.
+    Compile with all possible warnings active; all warnings should then be addressed before release of the software.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Versoining
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Syntax
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Resources
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+https://tinusaur.com/guides/avr-gcc-toolchain/
+
 <!-- INTRODUCTION -->
 ## INTRODUCTION
 
 TODO: Add descrition of section
 
-### Intent
+### Project Overview
 TODO: Add project description
 
 TODO: Focus on software intent. Why is the software being developed? What is the rationale behind  the selection of the current MCU, etc (scoped Context)
@@ -52,6 +90,13 @@ TODO: Focus on software requirements. enumerate requirements here
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+### History
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Debugging
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- GETTING STARTED -->
 ## GETTING STARTED
 
 TODO: Add descrition of section
@@ -72,6 +117,7 @@ TODO: Mention different installation methods as per ATMEGA328P (SPI, Parallel, S
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- USAGE -->
 ## USAGE
 
 TODO: Add descrition of section
@@ -87,6 +133,7 @@ TODO: Add descrition of section
 ### Telemetry
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- CONTRIBUTORS -->
 ## CONTRIBUTORS
 
 Fabrizio Eduardo Rojas Iacocca 
@@ -96,6 +143,7 @@ Fabrizio Eduardo Rojas Iacocca
 - [GitHub](https://github.com/FabsRS/)
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- LISENCE -->
 ## LISENCE
 
 Distributed under the MIT License. See `LICENSE.txt` for more information.

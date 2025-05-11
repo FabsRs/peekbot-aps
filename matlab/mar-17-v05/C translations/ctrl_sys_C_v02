@@ -1,0 +1,71 @@
+#include <math.h>
+#include <stdint.h>
+
+#define TOTAL_TIME 75
+#define DT 1  // Using integer step instead of float
+#define TIME_STEPS (TOTAL_TIME / DT + 1)
+#define G 9807  // Scaled gravity for fixed-point arithmetic
+#define M_ANT 165  // Scaled mass for fixed-point arithmetic
+#define I_EL 2523  // Scaled moment of inertia
+#define I_AZ 2035  // Scaled moment of inertia
+#define L_CG 10986  // Scaled length for fixed-point
+#define FOS_EL 14
+#define FOS_AZ 28
+#define GEAR_RATIO_EL 200
+#define J_EL (I_EL + 13 * (GEAR_RATIO_EL * GEAR_RATIO_EL))
+#define B_EL (6 * J_EL)
+#define GEAR_RATIO_AZ (1012 * 375)
+#define J_AZ (I_AZ + 13 * (GEAR_RATIO_AZ * GEAR_RATIO_AZ))
+#define B_AZ (6 * J_AZ)
+#define TAU_MAX_EL 37
+#define TAU_MAX_AZ 59
+#define PWM_MAX 100
+
+// State-space matrices using integers
+const int32_t A_el[2][2] = {{0, 1000}, {0, -1693}};
+const int32_t B_el[2] = {0, 312};
+const int32_t C_el[2] = {1000, 0};
+const int32_t K_el[2] = {2054, -298};
+const int32_t L_el[2] = {6307, 5322};
+const int32_t N_r_el = 2054;
+
+const int32_t A_az[2][2] = {{0, 1000}, {0, -5828}};
+const int32_t B_az[2] = {0, 614};
+const int32_t C_az[2] = {1000, 0};
+const int32_t K_az[2] = {2607, -81940};
+const int32_t L_az[2] = {10171, 4715};
+const int32_t N_r_az = 2607;
+
+// Time and setpoints
+int32_t time[TIME_STEPS];
+int32_t theta_el_desired[TIME_STEPS];
+int32_t theta_az_desired[TIME_STEPS];
+
+// Outputs
+int32_t el_pos[TIME_STEPS], az_pos[TIME_STEPS];
+int32_t el_velocity[TIME_STEPS], az_velocity[TIME_STEPS];
+int32_t el_accel[TIME_STEPS], az_accel[TIME_STEPS];
+int32_t el_torque[TIME_STEPS], az_torque[TIME_STEPS];
+int32_t pwm_el[TIME_STEPS], pwm_az[TIME_STEPS];
+
+void control_system() {
+    for (int k = 0; k < TIME_STEPS; k++) {
+        time[k] = k * DT;
+        theta_el_desired[k] = (N_r_el * 9000) / 10000;
+        theta_az_desired[k] = (N_r_az * 36000) / 10000;
+    }
+    
+    for (int k = 0; k < TIME_STEPS; k++) {
+        int32_t dt_k = (k > 0) ? (time[k] - time[k - 1]) : DT;
+        el_accel[k] = (k > 0) ? (el_velocity[k] - el_velocity[k - 1]) / dt_k : 0;
+        az_accel[k] = (k > 0) ? (az_velocity[k] - az_velocity[k - 1]) / dt_k : 0;
+        el_torque[k] = (J_EL * el_accel[k] + B_EL * el_velocity[k] + (M_ANT * G * L_CG * cos(el_pos[k] / 1000))) / 10000;
+        az_torque[k] = (J_AZ * az_accel[k] + B_AZ * az_velocity[k]) / 10000;
+        el_torque[k] = (el_torque[k] > TAU_MAX_EL) ? TAU_MAX_EL : ((el_torque[k] < -TAU_MAX_EL) ? -TAU_MAX_EL : el_torque[k]);
+        az_torque[k] = (az_torque[k] > TAU_MAX_AZ) ? TAU_MAX_AZ : ((az_torque[k] < -TAU_MAX_AZ) ? -TAU_MAX_AZ : az_torque[k]);
+        pwm_el[k] = (el_torque[k] * PWM_MAX) / TAU_MAX_EL;
+        pwm_az[k] = (az_torque[k] * PWM_MAX) / TAU_MAX_AZ;
+        pwm_el[k] = (pwm_el[k] > PWM_MAX) ? PWM_MAX : ((pwm_el[k] < 0) ? 0 : pwm_el[k]);
+        pwm_az[k] = (pwm_az[k] > PWM_MAX) ? PWM_MAX : ((pwm_az[k] < 0) ? 0 : pwm_az[k]);
+    }
+}
